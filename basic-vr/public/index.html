@@ -37,11 +37,26 @@
        });
 
 
+       controls = new THREE.OrbitControls(camera, renderer.domElement);
+
+
        //some geometry
-       var geometry = new THREE.BoxGeometry(1, 1, 1);
+       var geometry = new THREE.BoxGeometry(2, 2, 2);
+       
+       var cubeMaterials =
+           [
+               //instead of map, you could use color: '' to specify material as well                              
+               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide })
+
+           ];
 
        //material, color, texture
-       var material = new THREE.MeshBasicMaterial({ color: 'red', wireframe: true });
+       var material = new THREE.MeshFaceMaterial(cubeMaterials);
        var cube = new THREE.Mesh(geometry, material);
        scene.add(cube);
 
@@ -50,8 +65,8 @@
        //game logic (like unity update)
        var update = function ()
        {
-           cube.rotation.x += 0.01;
-           cube.rotation.y -= 0.003;
+           //cube.rotation.x += 0.01;
+           //cube.rotation.y -= 0.003;
        };
 
        // draw Scene
@@ -73,6 +88,10 @@
        GameLoop();
 
    </script>
+
+    Left click to orbit
+    Right click to pan
+    Mousewheel to zoom in/out
 </body>
 
 </html>
