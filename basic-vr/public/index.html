@@ -20,7 +20,10 @@
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js" integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg==" crossorigin="anonymous"></script>
     <script src="./js/OrbitControls.js"></script>
-    <script src="./js/GLTFLoader.js"></script>
+    <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js"></script>
+
+    <script>javascript: (function () { var script = document.createElement('script'); script.onload = function () { var stats = new Stats(); document.body.appendChild(stats.dom); requestAnimationFrame(function loop() { stats.update(); requestAnimationFrame(loop) }); }; script.src = '//mrdoob.github.io/stats.js/build/stats.min.js'; document.head.appendChild(script); })()</script>
+
     <script>
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -42,7 +45,7 @@
 
         var loader = new THREE.GLTFLoader();
 
-        loader.load('./ models / rover_big.glb', function (gltf) {
+        loader.load('./models/pelicano_ix.glb', function (gltf) {
             scene.add(gltf.scene);
         }, undefined, function (error) {
             console.error(error);
@@ -67,12 +70,12 @@
         //material, color, texture
         var material = new THREE.MeshFaceMaterial(cubeMaterials);
         var cube = new THREE.Mesh(geometry, material);
-        scene.add(cube);
+        //scene.add(cube);
 
         camera.position.z = 3;
 
-        var ambientLight = new THREE.AmbientLight(0xFFFFFF, 2.0);
-        //scene.add(ambientLight);
+        var ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
+        scene.add(ambientLight);
 
         var lightSphere = new THREE.SphereGeometry(0.4, 32, 32);
         var sph = new THREE.Mesh(lightSphere, new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide }));
@@ -80,7 +83,7 @@
 
         var directionalLight = new THREE.DirectionalLight(0xFFFFFF, 4);
         directionalLight.position.set(0, 1, 2);
-        scene.add(directionalLight);
+        //scene.add(directionalLight);
 
         var light1 = new THREE.PointLight(0xFF0040, 10, 0);
         //scene.add(light1);
@@ -91,7 +94,7 @@
             //cube.rotation.y -= 0.003;
 
             var time = Date.now() * 0.0005;
-            directionalLight.position.y = Math.sin(time * 0.7) * 30;
+            //directionalLight.position.y = Math.sin(time * 0.7) * 30;
 
 
         };
