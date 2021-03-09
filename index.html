@@ -23,19 +23,25 @@
    <script>
        var scene = new THREE.Scene( );
        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
        var renderer = new THREE.WebGLRenderer();
-
-
-
        renderer.setSize(window.innerWidth, window.innerHeight);
        document.body.appendChild(renderer.domElement);
+
+       window.addEventListener('resize', function () {
+           var width = window.innerWidth;
+           var height = window.innerHeight;
+           renderer.setSize(width, height);
+           camera.aspect = width / height;
+           camera.updateProjectionMatrix();
+       });
 
 
        //some geometry
        var geometry = new THREE.BoxGeometry(1, 1, 1);
 
        //material, color, texture
-       var material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, wireframe: true });
+       var material = new THREE.MeshBasicMaterial({ color: 'red', wireframe: true });
        var cube = new THREE.Mesh(geometry, material);
        scene.add(cube);
 
@@ -45,6 +51,7 @@
        var update = function ()
        {
            cube.rotation.x += 0.01;
+           cube.rotation.y -= 0.003;
        };
 
        // draw Scene
