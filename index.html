@@ -1,7 +1,71 @@
 <html>
 
-<head></head>
+<head>
+    <title>Three.js tutorial</title>
 
-<body></body>
+    <!--usually extract this out in js script for style-->
+    <style>
+        body 
+        {
+            margin:0;
+        }
+        canvas
+        {
+            width:100%;
+            height:100%;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js" integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg==" crossorigin="anonymous"></script>
+
+   <script>
+       var scene = new THREE.Scene( );
+       var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+       var renderer = new THREE.WebGLRenderer();
+
+
+
+       renderer.setSize(window.innerWidth, window.innerHeight);
+       document.body.appendChild(renderer.domElement);
+
+
+       //some geometry
+       var geometry = new THREE.BoxGeometry(1, 1, 1);
+
+       //material, color, texture
+       var material = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, wireframe: true });
+       var cube = new THREE.Mesh(geometry, material);
+       scene.add(cube);
+
+       camera.position.z = 3;
+
+       //game logic (like unity update)
+       var update = function ()
+       {
+           cube.rotation.x += 0.01;
+       };
+
+       // draw Scene
+       var render = function ()
+       {
+           renderer.render(scene, camera);
+
+       };
+
+
+       // run game loop (update, render, repeat)
+       var GameLoop = function ()
+       {
+           requestAnimationFrame(GameLoop);
+           update();
+           render();
+       };
+
+       GameLoop();
+
+   </script>
+</body>
 
 </html>

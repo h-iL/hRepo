@@ -16,14 +16,15 @@ const server = http.createServer(function (req, res)
         {
             res.write(data)
         }
-        res.end;
+        res.end()
     })
 })
 
 
 server.listen(port, function (error)
 {
-    if (error) {
+    if (error)
+    {
         console.log('Something not right', error)
     }
 
