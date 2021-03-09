@@ -13,4 +13,4 @@ app.use(express.static('public'))
 // Mounts the specified middleware function or functions at the specified path: the middleware function is executed when the base of the requested path matches path.
 // serve static content 
 
-console.log('my socket server is running')
+console.log('my express server is running')
