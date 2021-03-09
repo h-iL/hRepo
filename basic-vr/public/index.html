@@ -21,9 +21,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js" integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg==" crossorigin="anonymous"></script>
     <script src="./js/OrbitControls.js"></script>
     <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="./js/AnaglyphEffect.js"></script>
+
 
     <script>javascript: (function () { var script = document.createElement('script'); script.onload = function () { var stats = new Stats(); document.body.appendChild(stats.dom); requestAnimationFrame(function loop() { stats.update(); requestAnimationFrame(loop) }); }; script.src = '//mrdoob.github.io/stats.js/build/stats.min.js'; document.head.appendChild(script); })()</script>
-
+    
     <script>
         var scene = new THREE.Scene();
         var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -51,6 +53,9 @@
             console.error(error);
         });
 
+        var effect = new THREE.AnaglyphEffect(renderer);
+        effect.setSize(window.innerWidth, window.innerHeight);
+
 
         //some geometry
         var geometry = new THREE.BoxGeometry(2, 2, 2);
@@ -74,7 +79,25 @@
 
         camera.position.z = 3;
 
-        var ambientLight = new THREE.AmbientLight(0xFFFFFF, 0.5);
+
+        var skyGeometry = new THREE.BoxGeometry(1000, 1000, 1000);
+        var skyMaterials =
+        [
+                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./skybox/FRONT.png'), side: THREE.DoubleSide}),
+                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./skybox/BACK.png'), side: THREE.DoubleSide }),
+                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./skybox/TOP.png'), side: THREE.DoubleSide }),
+                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./skybox/BOTTOM.png'), side: THREE.DoubleSide }),
+                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./skybox/LEFT.png'), side: THREE.DoubleSide }),
+                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./skybox/RIGHT.png'), side: THREE.DoubleSide }),
+
+
+            ]; 
+
+        var skyMat = new THREE.MeshFaceMaterial(skyMaterials);
+        var sky = new THREE.Mesh(skyGeometry, skyMat);
+        scene.add(sky);
+
+        var ambientLight = new THREE.AmbientLight(0xFFFFFF, 1);
         scene.add(ambientLight);
 
         var lightSphere = new THREE.SphereGeometry(0.4, 32, 32);
@@ -101,7 +124,7 @@
 
         // draw Scene
         var render = function () {
-            renderer.render(scene, camera);
+            effect.render(scene, camera);
 
         };
 
