@@ -20,78 +20,101 @@
 <body>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js" integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg==" crossorigin="anonymous"></script>
     <script src="./js/OrbitControls.js"></script>
-   <script>
-       var scene = new THREE.Scene( );
-       var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    <script src="./js/GLTFLoader.js"></script>
+    <script>
+        var scene = new THREE.Scene();
+        var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 
-       var renderer = new THREE.WebGLRenderer();
-       renderer.setSize(window.innerWidth, window.innerHeight);
-       document.body.appendChild(renderer.domElement);
+        var renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
 
-       window.addEventListener('resize', function () {
-           var width = window.innerWidth;
-           var height = window.innerHeight;
-           renderer.setSize(width, height);
-           camera.aspect = width / height;
-           camera.updateProjectionMatrix();
-       });
-
-
-       controls = new THREE.OrbitControls(camera, renderer.domElement);
+        window.addEventListener('resize', function () {
+            var width = window.innerWidth;
+            var height = window.innerHeight;
+            renderer.setSize(width, height);
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+        });
 
 
-       //some geometry
-       var geometry = new THREE.BoxGeometry(2, 2, 2);
-       
-       var cubeMaterials =
-           [
-               //instead of map, you could use color: '' to specify material as well                              
-               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
-               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
-               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
-               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
-               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
-               new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide })
+        controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-           ];
+        var loader = new THREE.GLTFLoader();
 
-       //material, color, texture
-       var material = new THREE.MeshFaceMaterial(cubeMaterials);
-       var cube = new THREE.Mesh(geometry, material);
-       scene.add(cube);
-
-       camera.position.z = 3;
-
-       //game logic (like unity update)
-       var update = function ()
-       {
-           //cube.rotation.x += 0.01;
-           //cube.rotation.y -= 0.003;
-       };
-
-       // draw Scene
-       var render = function ()
-       {
-           renderer.render(scene, camera);
-
-       };
+        loader.load('./ models / rover_big.glb', function (gltf) {
+            scene.add(gltf.scene);
+        }, undefined, function (error) {
+            console.error(error);
+        });
 
 
-       // run game loop (update, render, repeat)
-       var GameLoop = function ()
-       {
-           requestAnimationFrame(GameLoop);
-           update();
-           render();
-       };
+        //some geometry
+        var geometry = new THREE.BoxGeometry(2, 2, 2);
 
-       GameLoop();
+        var cubeMaterials =
+            [
+                //instead of map, you could use color: '' to specify material as well
+                new THREE.MeshLambertMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+                new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+                new THREE.MeshLambertMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+                new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+                new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide }),
+                new THREE.MeshPhongMaterial({ map: new THREE.TextureLoader().load('./img/01.jpg'), side: THREE.DoubleSide })
 
-   </script>
+            ];
 
-    Left click to orbit
-    Right click to pan
-    Mousewheel to zoom in/out
+        //material, color, texture
+        var material = new THREE.MeshFaceMaterial(cubeMaterials);
+        var cube = new THREE.Mesh(geometry, material);
+        scene.add(cube);
+
+        camera.position.z = 3;
+
+        var ambientLight = new THREE.AmbientLight(0xFFFFFF, 2.0);
+        //scene.add(ambientLight);
+
+        var lightSphere = new THREE.SphereGeometry(0.4, 32, 32);
+        var sph = new THREE.Mesh(lightSphere, new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide }));
+        scene.add(sph);
+
+        var directionalLight = new THREE.DirectionalLight(0xFFFFFF, 4);
+        directionalLight.position.set(0, 1, 2);
+        scene.add(directionalLight);
+
+        var light1 = new THREE.PointLight(0xFF0040, 10, 0);
+        //scene.add(light1);
+
+        //game logic (like unity update)
+        var update = function () {
+            //cube.rotation.x += 0.01;
+            //cube.rotation.y -= 0.003;
+
+            var time = Date.now() * 0.0005;
+            directionalLight.position.y = Math.sin(time * 0.7) * 30;
+
+
+        };
+
+        // draw Scene
+        var render = function () {
+            renderer.render(scene, camera);
+
+        };
+
+
+        // run game loop (update, render, repeat)
+        var GameLoop = function () {
+            requestAnimationFrame(GameLoop);
+            update();
+            render();
+        };
+
+        GameLoop();
+
+    </script>
+
+
 </body>
 
 </html>
