@@ -1,1 +1,6 @@
 node_modules/
+hdr-textures/package.json
+hdr-textures/.vs/VSWorkspaceState.json
+hdr-textures/.vs/slnx.sqlite
+hdr-textures/.vs/hdr-textures/v16/.suo
+hdr-textures/package-lock.json
