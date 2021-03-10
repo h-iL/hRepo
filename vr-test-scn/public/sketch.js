@@ -1,30 +1,10 @@
  import {VRButton} from './js/VRButton.js'
 
 
-var scene = new THREE.Scene()
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
+var camera, scene, renderer
 
-camera.position.set(0, 0, 0)
+init()
 
-var renderer = new THREE.WebGLRenderer({ antialias: true })
-renderer.setSize(window.innerWidth, window.innerHeight)
-
-renderer.xr.enabled = true
-
-document.body.appendChild(renderer.domElement)
-document.body.appendChild(VRButton.createButton(renderer))
-
-
-//detect window size change and update projectionmatrix to current width/height
-window.addEventListener('resize', function () {
-    var width = window.innerWidth
-    var height = window.innerHeight
-    renderer.setSize(width, height)
-    camera.aspect = width / height
-    camera.updateProjectionMatrix()
-});
-
-//*********************************************************//
 
 
 var roomGeometry = new THREE.BoxGeometry(5, 3, 5)
@@ -49,23 +29,46 @@ var ambientLight = new THREE.AmbientLight('white', 3)
 scene.add(ambientLight)
 
 
-
-
-
-//*********************************************************//
-
 var update = function ()
 {
 
 }
-
-//var render = function ()
-//{
-//    renderer.render(scene, camera)
-//}
 
 
 renderer.setAnimationLoop(function ()
 {
     renderer.render(scene, camera)
 })
+
+
+function init() {
+    scene = new THREE.Scene()
+
+    renderer = new THREE.WebGLRenderer({ antialias: true })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+
+    renderer.xr.enabled = true
+
+    document.body.appendChild(renderer.domElement)
+    document.body.appendChild(VRButton.createButton(renderer))
+
+    setCamera()
+
+    window.addEventListener('resize', onWindowResize, false)
+}
+
+
+function setCamera()
+{
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000) 
+    camera.position.set(0, 0, 0)
+}
+
+function onWindowResize()
+{
+    var width = window.innerWidth
+    var height = window.innerHeight
+    renderer.setSize(width, height)
+    camera.aspect = width / height
+    camera.updateProjectionMatrix()
+}
