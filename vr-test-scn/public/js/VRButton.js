@@ -1,3 +1,4 @@
+
 class VRButton {
 
 	static createButton( renderer, options ) {
