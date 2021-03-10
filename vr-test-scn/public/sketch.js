@@ -33,6 +33,8 @@ function init() {
 
     addStuff()
 
+    setControls()
+
     window.addEventListener('resize', onWindowResize, false)
 }
 
@@ -89,7 +91,7 @@ function addStuff()
 
 
     var cube2 = new THREE.Mesh(roomGeometry, roomMaterials)
-    scene.add(cube2)
+    //scene.add(cube2)
     cube2.position.set(1,0,0)
 }
 
@@ -112,6 +114,35 @@ function setControls()
 
     scene.add(controller1)
 
+
+
+    controller2 = renderer.xr.getController(1)
+    controller2.addEventListener('selectstart', onSelectStart)
+    controller2.addEventListener('selectend', onSelectEnd)
+
+    controller2.addEventListener('connected', function (event) {
+        this.add(buildController(event.data))
+
+    })
+
+    controller2.addEventListener('disconnected', function () {
+        this.remove(this.children[0])
+    })
+
+    scene.add(controller2)
+
+
+    const controllerModelFactory = new XRControllerModelFactory()
+
+    controllerGrip1 = renderer.xr.getControllerGrip(0)
+
+    controllerGrip1.add(controllerModelFactory.createControllerModel(controllerGrip1))
+    scene.add(controllerGrip1)
+
+    controllerGrip2 = renderer.xr.getControllerGrip(1)
+    controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2))
+    scene.add(controllerGrip2)
+
 }
 
 function onSelectStart()
@@ -122,5 +153,26 @@ function onSelectStart()
 function onSelectEnd()
 {
     this.userData.isSelecting = false;
+}
+
+function buildController(data)
+{
+    let geometry, material
+
+    switch (data.targetRayMode)
+    {
+        case 'tracked-pointer':
+            geometry = new THREE.BufferGeometry()
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, -1], 3))
+            geometry.setAttribute('color', new THREE.Float32BufferAttribute([0.5, 0.5, 0.5, 0, 0, 0], 3))
+
+            material = new THREE.LineBasicMaterial({ vertexColors: true, blending: THREE.AdditiveBlending })
+
+
+            return new THREE.Line(geometry, material);
+
+
+    }
+
 }
     
