@@ -4,41 +4,19 @@
 var camera, scene, renderer
 
 init()
+animate()
 
 
 
-var roomGeometry = new THREE.BoxGeometry(5, 3, 5)
-var material = new THREE.MeshBasicMaterial({ color: 'blue', side: THREE.DoubleSide })
-
-var roomMaterials =
-    [
-        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpeg'), side: THREE.DoubleSide }),
-        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/02.jpeg'), side: THREE.DoubleSide }),
-        new THREE.MeshBasicMaterial({color:'black', side: THREE.DoubleSide }),
-        new THREE.MeshBasicMaterial({color:'black', side: THREE.DoubleSide }),
-        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/03.jpeg'), side: THREE.DoubleSide }),
-        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/04.jpeg'), side: THREE.DoubleSide })
-    ]
 
 
-var roomCube = new THREE.Mesh(roomGeometry, roomMaterials)
-scene.add(roomCube)
-roomCube.position.set(0, 1, 0)
-
-var ambientLight = new THREE.AmbientLight('white', 3)
-scene.add(ambientLight)
 
 
 var update = function ()
 {
-
+    
 }
 
-
-renderer.setAnimationLoop(function ()
-{
-    renderer.render(scene, camera)
-})
 
 
 function init() {
@@ -54,6 +32,10 @@ function init() {
 
     setCamera()
 
+    setLight()
+
+    addStuff()
+
     window.addEventListener('resize', onWindowResize, false)
 }
 
@@ -64,6 +46,12 @@ function setCamera()
     camera.position.set(0, 0, 0)
 }
 
+function setLight()
+{
+    var ambientLight = new THREE.AmbientLight('white', 3)
+    scene.add(ambientLight)
+}
+
 function onWindowResize()
 {
     var width = window.innerWidth
@@ -72,3 +60,34 @@ function onWindowResize()
     camera.aspect = width / height
     camera.updateProjectionMatrix()
 }
+
+function animate()
+{
+    renderer.setAnimationLoop(function ()
+    {
+        renderer.render(scene, camera)
+    })
+
+}
+
+function addStuff()
+{
+    var roomGeometry = new THREE.BoxGeometry(5, 3, 5)
+    var material = new THREE.MeshBasicMaterial({ color: 'blue', side: THREE.DoubleSide })
+
+    var roomMaterials =
+        [
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpeg'), side: THREE.DoubleSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/02.jpeg'), side: THREE.DoubleSide }),
+            new THREE.MeshBasicMaterial({ color: 'black', side: THREE.DoubleSide }),
+            new THREE.MeshBasicMaterial({ color: 'black', side: THREE.DoubleSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/03.jpeg'), side: THREE.DoubleSide }),
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/04.jpeg'), side: THREE.DoubleSide })
+        ]
+
+
+    var roomCube = new THREE.Mesh(roomGeometry, roomMaterials)
+    scene.add(roomCube)
+    roomCube.position.set(0, 1, 0)
+}
+    
