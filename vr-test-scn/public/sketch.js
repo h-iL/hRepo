@@ -1,4 +1,4 @@
-
+ import {VRButton} from './js/VRButton.js'
 
 
 var scene = new THREE.Scene();
@@ -12,9 +12,6 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.xr.enabled = true;
 
 document.body.appendChild(renderer.domElement);
-
-
-
 document.body.appendChild(VRButton.createButton(renderer));
 
 
