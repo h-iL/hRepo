@@ -1,23 +1,18 @@
- import {VRButton} from './js/VRButton.js'
+import { VRButton } from './js/VRButton.js'
+import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 
 
 var camera, scene, renderer
+var controller1, controller2
+var controllerGrip1, controllerGrip2
 
 init()
 animate()
-
-
-
-
-
-
 
 var update = function ()
 {
     
 }
-
-
 
 function init() {
     scene = new THREE.Scene()
@@ -33,6 +28,8 @@ function init() {
     setCamera()
 
     setLight()
+
+    var controls = new THREE.OrbitControls(camera, renderer.domElement)
 
     addStuff()
 
@@ -89,5 +86,41 @@ function addStuff()
     var roomCube = new THREE.Mesh(roomGeometry, roomMaterials)
     scene.add(roomCube)
     roomCube.position.set(0, 1, 0)
+
+
+    var cube2 = new THREE.Mesh(roomGeometry, roomMaterials)
+    scene.add(cube2)
+    cube2.position.set(1,0,0)
+}
+
+function setControls()
+{
+    controller1 = renderer.xr.getController(0)
+    controller1.addEventListener('selectstart', onSelectStart)
+    controller1.addEventListener('selectend', onSelectEnd)
+
+    controller1.addEventListener('connected', function (event)
+    {
+        this.add(buildController(event.data))
+
+    })
+
+    controller1.addEventListener('disconnected', function ()
+    {
+        this.remove(this.children[0])
+    })
+
+    scene.add(controller1)
+
+}
+
+function onSelectStart()
+{
+    this.userData.isSelecting = true;
+}
+
+function onSelectEnd()
+{
+    this.userData.isSelecting = false;
 }
     
