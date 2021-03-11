@@ -1,3 +1,4 @@
+import { BoxGeometry } from './build/three.module.js'
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 
@@ -5,6 +6,12 @@ import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.
 var camera, scene, renderer
 var controller1, controller2
 var controllerGrip1, controllerGrip2
+let group
+let raycaster 
+
+const intersected = []
+const tempMatrix = new THREE.Matrix4()
+
 
 init()
 animate()
@@ -33,12 +40,11 @@ function init() {
     var controls = new THREE.OrbitControls(camera, renderer.domElement)
 
     addSky()
-    //addGrabbableStuff()
-    let meshes = new THREEx.ProceduralCity
+    addGrabbableStuff()
 
-    console.log(meshes)
+    //geometry4Test()
+    //generateProceduralCity()
 
-    meshes.forEach(mesh=>scene.add(mesh))
 
     setControls()
 
@@ -69,13 +75,20 @@ function onWindowResize()
 
 function animate()
 {
-    renderer.setAnimationLoop(function ()
-    {
-        renderer.render(scene, camera)
-    })
+    renderer.setAnimationLoop(render)
 
 }
 
+function render()
+{
+    cleanIntersected()
+    intersectObjects(controller1)
+    intersectObjects(controller2)
+    
+
+    renderer.render(scene, camera)
+}
+    
 function addSky()
 {
     var skyRoomGeometry = new THREE.BoxGeometry(1000, 1000, 1000)
@@ -111,31 +124,54 @@ function geometry4Test()
 }
 
 function addGrabbableStuff()
-{
-    
+{    
+    group = new THREE.Group()
 
+    scene.add(group)
+
+    const geometries =
+        [
+            new THREE.BoxGeometry(1, 1, 1),
+
+            //new THREE.CylinderGeometry(1, 1, 1, 64)
+
+
+        ]
+
+    for (let i = 0; i < 30; i++)
+    {
+        const geo = geometries[Math.floor(Math.random() * geometries.length)]
+        const mat = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, roughness: 0.7, metalness: 0.1 })
+
+        const object = new THREE.Mesh(geo, mat)
+        object.position.x = Math.floor(Math.random() * 100 - 50) * 5
+        //object.position.y = Math.floor(Math.random() * 200 - 100) * 10
+        object.position.z = Math.floor(Math.random() * 100 - 50) * 5
+
+        object.scale.setScalar(Math.random()+30)
+
+        object.castShadow = true
+        object.receiveShadow = true
+
+        group.add(object)
+
+    }
 
     
 }
 
 function generateProceduralCity()
 {
-    //var testBox = new THREE.BoxGeometry(1, 1, 1)
-    //var boxMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide })
-    //var boxGeo = new THREE.Mesh(testBox, boxMaterial)
+    let meshes = new THREEx.ProceduralCity
 
-    //testBox.applyMatrix4(new THREE.Matrix4().makeTranslation(0,0.5,0))
+    console.log(meshes)
 
+    meshes.forEach(mesh => scene.add(mesh))
+}
 
+function addBuilding()
+{
 
-    //scene.add(boxGeo)
-
-
-
-    //boxGeo.position.set(0,0,-4)
-
-    // var city = new THREEx.ProceduralCity
-    // scene.add(city)
 }
 
 function setControls()
@@ -186,16 +222,62 @@ function setControls()
     controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2))
     scene.add(controllerGrip2)
 
+
+
+
+
+    //
+
+
+    const geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, - 1)]);
+
+    const line = new THREE.Line(geometry);
+    line.name = 'line';
+    line.scale.z = 5;
+
+    controller1.add(line.clone());
+    controller2.add(line.clone());
+
+    raycaster = new THREE.Raycaster();
+
+    //
+
 }
 
-function onSelectStart()
+function onSelectStart(event)
 {
-    this.userData.isSelecting = true;
+    const controller = event.target;
+
+    const intersections = getIntersections(controller);
+
+    if (intersections.length > 0) {
+
+        const intersection = intersections[0];
+
+        const object = intersection.object;
+        object.material.emissive.b = 1;
+        controller.attach(object);
+
+        controller.userData.selected = object;
+
+    }
+
 }
 
-function onSelectEnd()
+function onSelectEnd(event)
 {
-    this.userData.isSelecting = false;
+    const controller = event.target;
+
+    if (controller.userData.selected !== undefined) {
+
+        const object = controller.userData.selected;
+        object.material.emissive.b = 0;
+        group.attach(object);
+
+        controller.userData.selected = undefined;
+
+    }
+
 }
 
 function buildController(data)
@@ -221,4 +303,56 @@ function buildController(data)
     }
 
 }
-    
+
+
+function cleanIntersected()
+{
+    while (intersected.length)
+    {
+        const object = intersected.pop()
+        object.material.emmisive.r = 0
+
+    }
+}
+
+function intersectObjects(controller)
+{
+    //if (controller.userdata.selected !== undefined) return
+
+
+    //const line = controller.getobjectbyname('line')
+    //const intersections = getintersections(controller)
+
+    //if (intersections.length > 0) {
+
+    //    const intersection = intersections[0];
+
+    //    const object = intersection.object;
+    //    object.material.emissive.r = 1;
+    //    intersected.push(object);
+
+    //    line.scale.z = intersection.distance;
+
+    //}
+
+    //else
+    //{
+    //    line.scale.z = 5
+
+    //}
+
+}
+
+function getIntersections(controller)
+{
+
+    tempMatrix.identity().extractRotation(controller.matrixWorld);
+
+    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+    raycaster.ray.direction.set(0, 0, - 1).applyMatrix4(tempMatrix);
+
+    return raycaster.intersectObjects(group.children);
+
+}
+
+
