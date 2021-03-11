@@ -31,7 +31,9 @@ function init() {
 
     var controls = new THREE.OrbitControls(camera, renderer.domElement)
 
-    addStuff()
+    addSky()
+    //addGrabbableStuff()
+    generateProceduralCity()
 
     setControls()
 
@@ -69,30 +71,66 @@ function animate()
 
 }
 
-function addStuff()
+function addSky()
 {
-    var roomGeometry = new THREE.BoxGeometry(5, 3, 5)
-    var material = new THREE.MeshBasicMaterial({ color: 'blue', side: THREE.DoubleSide })
+    var skyRoomGeometry = new THREE.BoxGeometry(1000, 1000, 1000)
+    //var material = new THREE.MeshBasicMaterial({ color: 'blue', side: THREE.DoubleSide })
 
-    var roomMaterials =
+    var skyMaterials =
         [
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/01.jpeg'), side: THREE.DoubleSide }),
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/02.jpeg'), side: THREE.DoubleSide }),
-            new THREE.MeshBasicMaterial({ color: 'black', side: THREE.DoubleSide }),
-            new THREE.MeshBasicMaterial({ color: 'black', side: THREE.DoubleSide }),
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/03.jpeg'), side: THREE.DoubleSide }),
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/04.jpeg'), side: THREE.DoubleSide })
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/3.png'), side: THREE.DoubleSide }),//right  3
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/1.png'), side: THREE.DoubleSide }),//left 1
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/top.png'), side: THREE.DoubleSide }), //top
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/white.png'), side: THREE.DoubleSide }), //bottom
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/2.png'), side: THREE.DoubleSide }),//front 2
+            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/4.png'), side: THREE.DoubleSide })//back 4
         ]
 
 
-    var roomCube = new THREE.Mesh(roomGeometry, roomMaterials)
-    scene.add(roomCube)
-    roomCube.position.set(0, 1, 0)
+    var skyRoomCube = new THREE.Mesh(skyRoomGeometry, skyMaterials)
+    scene.add(skyRoomCube)
+    skyRoomCube.position.set(0, 1, 0)
 
 
-    var cube2 = new THREE.Mesh(roomGeometry, roomMaterials)
-    //scene.add(cube2)
-    cube2.position.set(1,0,0)
+}
+
+function geometry4Test()
+{
+    var obj1 = new THREE.BoxGeometry(1, 1, 1)
+    var objMat = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.DoubleSide })
+
+    var objMesh = new THREE.Mesh(obj1, objMat)
+
+    scene.add(objMesh)
+    objMesh.position.set(0, 0, -6)
+}
+
+function addGrabbableStuff()
+{
+    
+
+
+    
+}
+
+function generateProceduralCity()
+{
+    //var testBox = new THREE.BoxGeometry(1, 1, 1)
+    //var boxMaterial = new THREE.MeshBasicMaterial({ color: 'white', side: THREE.DoubleSide })
+    //var boxGeo = new THREE.Mesh(testBox, boxMaterial)
+
+    //testBox.applyMatrix4(new THREE.Matrix4().makeTranslation(0,0.5,0))
+
+
+
+    //scene.add(boxGeo)
+
+
+
+    //boxGeo.position.set(0,0,-4)
+
+    var city = new THREEx.ProceduralCity
+    scene.add(city)
 }
 
 function setControls()
@@ -171,7 +209,10 @@ function buildController(data)
 
             return new THREE.Line(geometry, material);
 
-
+        case 'gaze':
+            geometry = new THREE.RingGeometry(0.02, 0.04, 32).translate(0, 0, -1)
+            material = new THREE.MeshBasicMaterial({ opacity: 0.5, transparent: true })
+            return new THREE.Mesh(geometry, material)
     }
 
 }
