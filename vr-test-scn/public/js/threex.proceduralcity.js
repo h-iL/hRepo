@@ -9,7 +9,7 @@ THREEx.ProceduralCity = function() {
 
     // build the base geometry for each building
 
-    var geometry = new THREE.BoxBufferGeometry(1, 1, 1);
+ 
 
     // console.log(geometry)
     // translate the geometry to place the pivot point at the bottom instead of the center
@@ -33,24 +33,25 @@ THREEx.ProceduralCity = function() {
 
     // var cityGeometry= new THREE.BufferGeometry();
 
-    for (var i = 0; i < 500; i++) {
+    for (var i = 0; i < 1000; i++) {
 
+    	var geometry = new THREE.BoxBufferGeometry(1,1,1)
         var buildingMesh = new THREE.Mesh(geometry);
 
 
         // put a random position
         buildingMesh.position.x = Math.floor(Math.random() * 200 - 100) * 10;
         buildingMesh.position.z = Math.floor(Math.random() * 200 - 100) * 10;
-        // put a random rotation
+        // // put a random rotation
         buildingMesh.rotation.y = Math.random() * Math.PI * 2;
-        // put a random scale
+        // // put a random scale
         buildingMesh.scale.x = Math.random() * Math.random() * Math.random() * Math.random() * 50 + 10;
         buildingMesh.scale.y = (Math.random() * Math.random() * Math.random() * buildingMesh.scale.x) * 8 + 8;
         buildingMesh.scale.z = buildingMesh.scale.x
 
-        // establish the base color for the buildingMesh
-        var value	= 1 - Math.random() * Math.random();
-        var baseColor = new THREE.Color().setRGB(value + Math.random() * 0.1, value, value + Math.random() * 0.1);
+        // // establish the base color for the buildingMesh
+        // var value	= 1 - Math.random() * Math.random();
+        // var baseColor = new THREE.Color().setRGB(255*Math.random(),255*Math.random(),255*Math.random());
 
 
 
@@ -75,18 +76,20 @@ THREEx.ProceduralCity = function() {
         // merge it with cityGeometry - very important for performance
         // THREE.BufferGeometryUtils.merge( cityGeometry, buildingMesh );
 
-        var texture = new THREE.Texture(generateTextureCanvas());
-        // texture.anisotropy = renderer.getMaxAnisotropy();
-        texture.needsUpdate = true;
+        // var texture = new THREE.Texture(generateTextureCanvas());
+        // // texture.anisotropy = renderer.getMaxAnisotropy();
+        // texture.needsUpdate = true;
 
-        // build the mesh
-        var material = new THREE.MeshLambertMaterial({
-            map: texture,
-            vertexColors: THREE.VertexColors
-        });
+        // // build the mesh
+        // var material = new THREE.MeshPhongMaterial({
+        // 	color: baseColor
+        //     // map: texture,
+        //     // vertexColors: THREE.VertexColors
+        // });
 
-        buildingMesh.material = material
+        // buildingMesh.material = material
 
+        // console.log(buildingMesh)
         meshArr.push(buildingMesh)
 
         // let mesh = new THREE.Mesh(ge)

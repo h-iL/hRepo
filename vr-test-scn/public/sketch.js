@@ -15,6 +15,7 @@ var update = function ()
 }
 
 function init() {
+    
     scene = new THREE.Scene()
 
     renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -33,7 +34,9 @@ function init() {
 
     addSky()
     //addGrabbableStuff()
-    let meshes =  generateProceduralCity()
+    let meshes = new THREEx.ProceduralCity
+
+    console.log(meshes)
 
     meshes.forEach(mesh=>scene.add(mesh))
 
@@ -131,8 +134,8 @@ function generateProceduralCity()
 
     //boxGeo.position.set(0,0,-4)
 
-    var city = new THREEx.ProceduralCity
-    scene.add(city)
+    // var city = new THREEx.ProceduralCity
+    // scene.add(city)
 }
 
 function setControls()
