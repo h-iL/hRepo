@@ -33,7 +33,7 @@ THREEx.ProceduralCity = function() {
 
     // var cityGeometry= new THREE.BufferGeometry();
 
-    for (var i = 0; i < 20000; i++) {
+    for (var i = 0; i < 500; i++) {
 
         var buildingMesh = new THREE.Mesh(geometry);
 
