@@ -1,4 +1,4 @@
-import { BoxGeometry } from './build/three.module.js'
+import { BoxGeometry, BufferAttribute } from './build/three.module.js'
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 
@@ -7,6 +7,7 @@ var camera, scene, renderer
 var controller1, controller2
 var controllerGrip1, controllerGrip2
 let group
+let group2
 let raycaster 
 
 const intersected = []
@@ -40,16 +41,19 @@ function init() {
     var controls = new THREE.OrbitControls(camera, renderer.domElement)
 
     addSky()
-    addGrabbableStuff()
+    //addGrabbableStuff()
 
     //geometry4Test()
+    
     //generateProceduralCity()
-
+    addBuilding(new THREE.Vector3(0, -5, -20), 10, 10, 5, 2.7)
 
     setControls()
 
     window.addEventListener('resize', onWindowResize, false)
 }
+
+
 
 
 function setCamera()
@@ -59,9 +63,14 @@ function setCamera()
 }
 
 function setLight()
-{
-    var ambientLight = new THREE.AmbientLight('white', 3)
-    scene.add(ambientLight)
+{       
+    scene.add(new THREE.HemisphereLight(0x808080, 0x110E3D, 2.5))
+
+
+
+
+
+
 }
 
 function onWindowResize()
@@ -114,6 +123,21 @@ function addSky()
 
 function geometry4Test()
 {
+
+    //const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
+    //const points = []
+    //points.push(new THREE.Vector3(-10, 0, 0))
+
+    //points.push(new THREE.Vector3(0, 0, -10))
+    //points.push(new THREE.Vector3(10, 0, 0))
+    //const geo = new THREE.BufferGeometry().setFromPoints(points)
+
+    //const line = new THREE.Line(geo, material)
+
+    //scene.add(line)
+
+
+
     var obj1 = new THREE.BoxGeometry(1, 1, 1)
     var objMat = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.DoubleSide })
 
@@ -122,6 +146,8 @@ function geometry4Test()
     scene.add(objMesh)
     objMesh.position.set(0, 0, -6)
 }
+
+
 
 function addGrabbableStuff()
 {    
@@ -134,8 +160,6 @@ function addGrabbableStuff()
             new THREE.BoxGeometry(1, 1, 1),
 
             //new THREE.CylinderGeometry(1, 1, 1, 64)
-
-
         ]
 
     for (let i = 0; i < 30; i++)
@@ -169,8 +193,54 @@ function generateProceduralCity()
     meshes.forEach(mesh => scene.add(mesh))
 }
 
-function addBuilding()
+function addBuilding(buildingPos,width,depth,levelsNum,f2fh)
 {
+    
+    ////buildingPos,width,depth,levelsNum,f2fh
+    //for (let i = 0; i < 10; i++)
+    //{
+    //    let flrPos = new THREE.Vector3(0, i, -20)
+    //    let flrGeometry = new THREE.BoxGeometry(5, 0.2, 5)
+    //    let flrMaterial = new THREE.MeshBasicMaterial({ color: 'white' })
+
+
+    //    let flrMesh = new THREE.Mesh(flrGeometry, flrMaterial)
+    //    flrMesh.position.set(flrPos.x, flrPos.y, flrPos.z)
+    //    scene.add(flrMesh)
+    //}
+
+    //buildingPos,width,depth,levelsNum,f2fh
+
+    group2 = new THREE.Group()
+    scene.add(group2)
+
+
+    for (let i = 0; i < levelsNum; i++)
+    {
+        let bPos = new THREE.Vector3(buildingPos.x, (i * f2fh) + buildingPos.y, buildingPos.z)
+
+        let flrGeometry = new THREE.BoxGeometry(width, 0.2, depth)
+        let flrMaterial = new THREE.MeshBasicMaterial({ color: 'white' })
+
+        let flrMesh = new THREE.Mesh(flrGeometry, flrMaterial)
+        flrMesh.position.set(bPos.x, bPos.y, bPos.z)
+
+
+        
+
+
+        let wallGeometry = new THREE.BoxGeometry(width, f2fh - 0.2, depth)
+
+        let wallMaterial = new THREE.MeshPhongMaterial({ color: 'cyan', opacity: 0.25, transparent: true, side: THREE.DoubleSide })
+        let wallMesh = new THREE.Mesh(wallGeometry, wallMaterial)
+        wallMesh.position.set(bPos.x, flrMesh.position.y + 1.4, bPos.z)
+
+        group2.add(flrMesh)
+        group2.add(wallMesh)
+
+
+    }
+    
 
 }
 
@@ -272,7 +342,8 @@ function onSelectEnd(event)
 
         const object = controller.userData.selected;
         object.material.emissive.b = 0;
-        group.attach(object);
+        //group for grabbable
+        group2.attach(object);
 
         controller.userData.selected = undefined;
 
@@ -351,7 +422,8 @@ function getIntersections(controller)
     raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
     raycaster.ray.direction.set(0, 0, - 1).applyMatrix4(tempMatrix);
 
-    return raycaster.intersectObjects(group.children);
+    //group for grabbable
+    return raycaster.intersectObjects(group2.children);
 
 }
 
