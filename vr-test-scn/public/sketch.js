@@ -33,7 +33,9 @@ function init() {
 
     addSky()
     //addGrabbableStuff()
-    generateProceduralCity()
+    let meshes =  generateProceduralCity()
+
+    meshes.forEach(mesh=>scene.add(mesh))
 
     setControls()
 
