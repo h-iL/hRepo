@@ -1,6 +1,9 @@
 import { BoxGeometry, BufferAttribute } from './build/three.module.js'
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
+import { BoxLineGeometry } from './jsm/geometries/BoxLineGeometry.js'
+import { textureBlock } from "./jsm/dbf-proc-tex.js"
+
 
 
 var camera, scene, renderer
@@ -9,6 +12,8 @@ var controllerGrip1, controllerGrip2
 let group
 let group2
 let raycaster 
+
+
 
 const intersected = []
 const tempMatrix = new THREE.Matrix4()
@@ -38,15 +43,9 @@ function init() {
 
     setLight()
 
-    var controls = new THREE.OrbitControls(camera, renderer.domElement)
-
     addSky()
     //addGrabbableStuff()
-
-    //geometry4Test()
-    
-    //generateProceduralCity()
-    addBuilding(new THREE.Vector3(0, -5, -20), 10, 10, 5, 2.7)
+    addTextureBuilding()
 
     setControls()
 
@@ -54,12 +53,27 @@ function init() {
 }
 
 
+function addTextureBuilding()
+{
+    
+    var meshes = textureBlock({ solution: sampleSoln, reflection: null, refraction: null })
+    meshes.forEach(mesh => scene.add(mesh))
 
+
+}
 
 function setCamera()
 {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000) 
     camera.position.set(0, 0, 0)
+
+    //dolly = new THREE.Object3D()
+    //dolly.add(camera)
+    //scene.add(dolly)
+
+    //dummyCam = new THREE.Object3D()
+    //camera.add(dummyCam)
+
 }
 
 function setLight()
@@ -91,9 +105,9 @@ function animate()
 function render()
 {
     cleanIntersected()
-    intersectObjects(controller1)
-    intersectObjects(controller2)
     
+
+
 
     renderer.render(scene, camera)
 }
@@ -101,7 +115,6 @@ function render()
 function addSky()
 {
     var skyRoomGeometry = new THREE.BoxGeometry(1000, 1000, 1000)
-    //var material = new THREE.MeshBasicMaterial({ color: 'blue', side: THREE.DoubleSide })
 
     var skyMaterials =
         [
@@ -118,36 +131,7 @@ function addSky()
     scene.add(skyRoomCube)
     skyRoomCube.position.set(0, 1, 0)
 
-
 }
-
-function geometry4Test()
-{
-
-    //const material = new THREE.LineBasicMaterial({ color: 0x0000ff });
-    //const points = []
-    //points.push(new THREE.Vector3(-10, 0, 0))
-
-    //points.push(new THREE.Vector3(0, 0, -10))
-    //points.push(new THREE.Vector3(10, 0, 0))
-    //const geo = new THREE.BufferGeometry().setFromPoints(points)
-
-    //const line = new THREE.Line(geo, material)
-
-    //scene.add(line)
-
-
-
-    var obj1 = new THREE.BoxGeometry(1, 1, 1)
-    var objMat = new THREE.MeshBasicMaterial({ color: 'red', side: THREE.DoubleSide })
-
-    var objMesh = new THREE.Mesh(obj1, objMat)
-
-    scene.add(objMesh)
-    objMesh.position.set(0, 0, -6)
-}
-
-
 
 function addGrabbableStuff()
 {    
@@ -178,7 +162,6 @@ function addGrabbableStuff()
         object.receiveShadow = true
 
         group.add(object)
-
     }
 
     
@@ -191,57 +174,6 @@ function generateProceduralCity()
     console.log(meshes)
 
     meshes.forEach(mesh => scene.add(mesh))
-}
-
-function addBuilding(buildingPos,width,depth,levelsNum,f2fh)
-{
-    
-    ////buildingPos,width,depth,levelsNum,f2fh
-    //for (let i = 0; i < 10; i++)
-    //{
-    //    let flrPos = new THREE.Vector3(0, i, -20)
-    //    let flrGeometry = new THREE.BoxGeometry(5, 0.2, 5)
-    //    let flrMaterial = new THREE.MeshBasicMaterial({ color: 'white' })
-
-
-    //    let flrMesh = new THREE.Mesh(flrGeometry, flrMaterial)
-    //    flrMesh.position.set(flrPos.x, flrPos.y, flrPos.z)
-    //    scene.add(flrMesh)
-    //}
-
-    //buildingPos,width,depth,levelsNum,f2fh
-
-    group2 = new THREE.Group()
-    scene.add(group2)
-
-
-    for (let i = 0; i < levelsNum; i++)
-    {
-        let bPos = new THREE.Vector3(buildingPos.x, (i * f2fh) + buildingPos.y, buildingPos.z)
-
-        let flrGeometry = new THREE.BoxGeometry(width, 0.2, depth)
-        let flrMaterial = new THREE.MeshBasicMaterial({ color: 'white' })
-
-        let flrMesh = new THREE.Mesh(flrGeometry, flrMaterial)
-        flrMesh.position.set(bPos.x, bPos.y, bPos.z)
-
-
-        
-
-
-        let wallGeometry = new THREE.BoxGeometry(width, f2fh - 0.2, depth)
-
-        let wallMaterial = new THREE.MeshPhongMaterial({ color: 'cyan', opacity: 0.25, transparent: true, side: THREE.DoubleSide })
-        let wallMesh = new THREE.Mesh(wallGeometry, wallMaterial)
-        wallMesh.position.set(bPos.x, flrMesh.position.y + 1.4, bPos.z)
-
-        group2.add(flrMesh)
-        group2.add(wallMesh)
-
-
-    }
-    
-
 }
 
 function setControls()
@@ -262,7 +194,6 @@ function setControls()
     })
 
     scene.add(controller1)
-
 
 
     controller2 = renderer.xr.getController(1)
@@ -292,10 +223,6 @@ function setControls()
     controllerGrip2.add(controllerModelFactory.createControllerModel(controllerGrip2))
     scene.add(controllerGrip2)
 
-
-
-
-
     //
 
 
@@ -303,7 +230,7 @@ function setControls()
 
     const line = new THREE.Line(geometry);
     line.name = 'line';
-    line.scale.z = 5;
+    line.scale.z = 15;
 
     controller1.add(line.clone());
     controller2.add(line.clone());
@@ -311,8 +238,24 @@ function setControls()
     raycaster = new THREE.Raycaster();
 
     //
+    
 
 }
+
+//function handleController(controller, dt)
+//{
+//    if (controller1.userData.selectPressed)
+//    {
+//        const speed = 2
+//        const quaternion = dolly.quaternion.clone()
+//        dolly.quaternion.copy(dummyCam.getWorldQuaternion())
+//        dolly.translateZ(-dt * speed)
+//        dolly.position.y = 0
+//        dolly.quaternion.copy(quaternion)
+
+//    }
+//}
+
 
 function onSelectStart(event)
 {
@@ -326,6 +269,7 @@ function onSelectStart(event)
 
         const object = intersection.object;
         object.material.emissive.b = 1;
+
         controller.attach(object);
 
         controller.userData.selected = object;
@@ -342,12 +286,25 @@ function onSelectEnd(event)
 
         const object = controller.userData.selected;
         object.material.emissive.b = 0;
+
         //group for grabbable
-        group2.attach(object);
+        group.attach(object);
 
         controller.userData.selected = undefined;
 
     }
+
+}
+
+function getIntersections(controller) {
+
+    tempMatrix.identity().extractRotation(controller.matrixWorld);
+
+    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
+    raycaster.ray.direction.set(0, 0, - 1).applyMatrix4(tempMatrix);
+
+    //group for grabbable
+    return raycaster.intersectObjects(group.children);
 
 }
 
@@ -375,7 +332,6 @@ function buildController(data)
 
 }
 
-
 function cleanIntersected()
 {
     while (intersected.length)
@@ -386,45 +342,7 @@ function cleanIntersected()
     }
 }
 
-function intersectObjects(controller)
-{
-    //if (controller.userdata.selected !== undefined) return
 
 
-    //const line = controller.getobjectbyname('line')
-    //const intersections = getintersections(controller)
-
-    //if (intersections.length > 0) {
-
-    //    const intersection = intersections[0];
-
-    //    const object = intersection.object;
-    //    object.material.emissive.r = 1;
-    //    intersected.push(object);
-
-    //    line.scale.z = intersection.distance;
-
-    //}
-
-    //else
-    //{
-    //    line.scale.z = 5
-
-    //}
-
-}
-
-function getIntersections(controller)
-{
-
-    tempMatrix.identity().extractRotation(controller.matrixWorld);
-
-    raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld);
-    raycaster.ray.direction.set(0, 0, - 1).applyMatrix4(tempMatrix);
-
-    //group for grabbable
-    return raycaster.intersectObjects(group2.children);
-
-}
 
 
