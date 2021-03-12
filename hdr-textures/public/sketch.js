@@ -13,23 +13,6 @@ animate()
 
 loadSampleSite()
 
-// //materials
-// var cubeMaterial3 = new THREE.MeshLambertMaterial({
-//     color: 0xff6600,
-//     envMap: reflectionCube,
-//     combine: THREE.MixOperation,
-//     reflectivity: 0.3
-// });
-// var cubeMaterial2 = new THREE.MeshLambertMaterial({
-//     color: 0xffee00,
-//     envMap: refractionCube,
-//     refractionRatio: 0.95
-// });
-// var cubeMaterial1 = new THREE.MeshLambertMaterial({
-//     color: 0xffffff,
-//     envMap: reflectionCube
-// });
-
 
 function textureObject(params) {
 
