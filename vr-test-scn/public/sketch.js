@@ -53,10 +53,12 @@ function init() {
     var object = new THREE.Mesh(boxGeometry, boxMaterial)
     object.position.set(0, 0, -8)
     object.castShadow=true
-    object.receiveShadow=true
-    group.add(object)
+    object.receiveShadow = true
+    scene.add(object)
+    //group.add(object)
 
     addTextureBuilding()
+    buildUI()
 
     renderer = new THREE.WebGLRenderer({ antialias: true })
     renderer.setPixelRatio(window.devicePixelRatio)
@@ -142,6 +144,29 @@ function render()
 
     dollyMove()
     renderer.render(scene, camera)
+}
+
+function buildUI()
+{
+    var UIContainer = new ThreeMeshUI.Block(
+        {
+        width: 1.2,
+        height: 0.7,
+        padding: 0.2,
+        fontFamily: './assets/Roboto-msdf.json',
+        fontTexture: './assets/Roboto-msdf.png',
+    })
+
+
+    const text = new ThreeMeshUI.Text({
+        content: "Some text to be displayed"
+    });
+
+    UIContainer.add(text)
+    UIContainer.position.set(0,0,0)
+
+    // scene is a THREE.Scene (see three.js)
+    scene.add(UIContainer)
 }
 
 function dollyMove()
