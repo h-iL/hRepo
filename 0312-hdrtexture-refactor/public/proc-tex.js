@@ -11,8 +11,6 @@ export function textureBlock(params) {
 
     let meshes = []
 
-    console.log('sample:: ', sampleSoln)
-
     const {
         blocks
     } = params.solution
@@ -64,22 +62,21 @@ export function updateTexture(params) {
 
     console.log('update texture')
 
-    let material = proceduralTexture({
+    let options = {
+        a:Math.random()*0.75+0.25,
+        b:Math.random()*5+1,
+        c:1,
+        d:0 // checkerboard 
+    }
 
-        length: Math.random() * 10,
-        height: Math.random() * 10,
-        windowRatio: Math.random() * 10,
-        offsetX: Math.random() * 10,
-        offsetY: Math.random() * 10,
-
-    })
+    if (Math.random()>0.6){
+        options.d = 1 
+    }
 
 
-    // console.log(params.meshes)
-    params.meshes.forEach(m => m.material = material)
 
-    // params.meshes.forEach(mesh=>mesh.material = material)
-
+    let result = params.meshes.map(mesh=>updateProceduralTexture(mesh,options)) // applies texture to 
+    
 
     return params.meshes
 
@@ -134,56 +131,38 @@ function applySlabs(block) {
 }
 
 
-function applyBlockTexture(shapes, translate, rotate, scale, f2f, options) {
-
-    // create walls 
-
-    let facadeMeshes = shapes.map(shape=>extrudeShape(shape))
-
-    // apply textures 
+function applyBlockTexture(shape, translate, rotate, scale, f2f) {
 
 
+    let facadeMeshes = extrudePolygonEdges(shape, translate, f2f, scale) // returns array of boxes 
+    facadeMeshes = updateTexture({meshes:facadeMeshes}) // apply textures 
 
-    let walls = []
+    return facadeMeshes
 
-    for (var i = -1; i < shape.length - 1; i++) {
 
-        let a = shape[i]
+}
 
-        if (i == -1) {
-            a = shape[shape.length - 1]
-        }
 
-        let b = shape[i + 1]
-        let height = f2f * scale.y
-        let elev = translate.y
+function updateProceduralTexture(mesh, options){
 
-        let ptA = new THREE.Vector3(a.x + translate.x, a.y, a.z + translate.z)
-        let ptB = new THREE.Vector3(b.x + translate.x, b.y, b.z + translate.z)
-
-        let mesh = extrudeWall(ptA, ptB, height, elev, f2f) // refactor 
+    let {a,b,c,d} = options
 
         mesh.material = proceduralTexture({
 
             length: mesh.geometry.parameters.depth,
             height: mesh.geometry.parameters.height,
-            windowRatio: 1,
-            offsetX: 1,
-            offsetY: f2f,
-            options: null,  
+            windowRatio: a,
+            offsetX: b,
+            offsetY: mesh.floorHeight*c,
+            checkerboard: d, 
 
         })
 
-        walls.push(mesh)
-
-    }
-
-    return walls
-
-
+        return mesh 
 }
 
-function extrudeShape(shape){
+
+function extrudePolygonEdges(shape, translate, floorHeight, scale) {
 
     let arr = []
 
@@ -196,13 +175,13 @@ function extrudeShape(shape){
         }
 
         let b = shape[i + 1]
-        let height = f2f * scale.y
+        let height = floorHeight * scale.y
         let elev = translate.y
 
         let ptA = new THREE.Vector3(a.x + translate.x, a.y, a.z + translate.z)
         let ptB = new THREE.Vector3(b.x + translate.x, b.y, b.z + translate.z)
-
-        let mesh = extrudeWall(ptA, ptB, height, elev, f2f) // refactor 
+        let mesh = extrudeWall(ptA, ptB, height, elev, floorHeight) // refactor 
+        mesh.floorHeight = floorHeight
 
         arr.push(mesh)
 
@@ -226,7 +205,7 @@ function proceduralTexture(params) {
         spacingX: params.offsetX,
         spacingY: params.offsetY,
         parameter: t,
-        checkerBoard: false,
+        checkerBoard: params.checkerboard,
 
     }
 
