@@ -25,6 +25,10 @@ const prevGamePads = new Map()
 var speedFactor = [0.3, 0.3, 0.3, 0.3]
 
 
+var objsToTest = []
+
+
+
 init()
 animate()
 
@@ -146,7 +150,60 @@ function render()
 
     dollyMove()
     renderer.render(scene, camera)
+    updateButton()
 }
+
+function updateButton()
+{
+    let intersect = raycast()
+
+
+    if (intersect && intersect.object.isUI)
+    {
+        if (selectState) { intersect.object.setState('selected') }
+
+        else { intersect.object.setState('hovered') }
+    }
+
+
+    objsToTest.forEach((obj) =>
+    {
+        if ((!intersect || obj !== intersect.object) && obj.isUI)
+        {
+            obj.setState('idle')
+        }
+
+    })
+}
+
+function raycast()
+{
+
+    var rcaster = new THREE.Raycaster()
+
+    return objsToTest.reduce((closestIntersection, obj) =>
+    {
+        
+
+        const intersection = rcaster.intersectedObject(obj.true)
+
+        if (!intersection[0]) return closestIntersection
+        if (!closestIntersection || intersection[0].distance < closestIntersection.distance)
+        {
+            intersection[0].object = obj
+
+            return intersection[0]
+        }
+
+        else
+        {
+            return closestIntersection
+        }
+
+    }, null)
+}
+
+
 
 function buildUI() {
 
@@ -210,6 +267,55 @@ function buildUI() {
     loader.load('./assets/button.png', (texture) => { buttonNextBlk.set({ backgroundTexture: texture }) })
     loader.load('./assets/button.png', (texture) => { facadeSelBlock.set({ backgroundTexture: texture }) })
     loader.load('./assets/button.png', (texture) => { UIContainerBlk.set({ backgroundTexture: texture }) })    
+
+    const hoveredStateAttributes =
+    {
+        state: 'hovered',
+        attributes:
+        {
+            offset: 0.035,
+            backgroundColor: new THREE.Color(0x999999),
+            backgroundOpacity: 1,            
+        }
+    }
+
+    const idleStateAttributes =
+    {
+        state: 'idle',
+        attributes:
+        {
+            offset: 0.035,
+            backgroundColor: new THREE.Color(0x999999),
+            backgroundOpacity: 0.3,
+        }
+    }
+
+    const selectedAttributes=
+    {
+        offset: 0.02,
+    }
+
+    buttonPrevBlk.setupState(
+        {
+            state: 'selected',
+            attributes:selectedAttributes,
+            onSet: () => { /*reserve*/ }
+        })
+
+    buttonPrevBlk.setupState(hoveredStateAttributes)
+    buttonPrevBlk.setupState(idleStateAttributes)
+
+    buttonNextBlk.setupState(
+        {
+            state: 'selected',
+            attributes:selectedAttributes,
+            onSet: () => { /*reserve*/ }
+        })
+
+    buttonNextBlk.setupState(hoveredStateAttributes)
+    buttonNextBlk.setupState(idleStateAttributes)
+
+
 
     UIContainerBlk.add(facadeSelBlock)
    
@@ -521,6 +627,9 @@ function setControls()
     controller1.addEventListener('selectstart', onSelectStart)
     controller1.addEventListener('selectend', onSelectEnd)
 
+    
+
+
     //controller1.addEventListener('connected', function (event)
     //{
     //    this.add(buildController(event.data))
@@ -588,6 +697,8 @@ function onSelectStart(event)
 
     if (intersections.length > 0)
     {
+        
+        
 
         var intersection = intersections[0]
 
@@ -600,10 +711,7 @@ function onSelectStart(event)
 
     }
 
-    elseif ()
-    {
-
-    }
+    
 
 }
 
@@ -686,15 +794,16 @@ function intersectObjects(controller)
     }
 }
 
-function cleanIntersected()
-{
-    while (intersected.length)
-    {
+function cleanIntersected() {
+    while (intersected.length) {
         var object = intersected.pop()
         object.material.emmisive.r = 0
-   
+
 
     }
+}
+
+
 
 function buildController(data)
 {
@@ -721,7 +830,7 @@ function buildController(data)
 }
 
 
-}
+
 
 
 
