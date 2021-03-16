@@ -2,26 +2,27 @@ console.log('sketch.js')
 
 
 import {textureBlock} from "./proc-tex.js"
+import {updateTexture} from "./proc-tex.js"
 
 var container;
 var camera, scene, renderer;
 var pointLight;
-let reflectionCube
-let refractionCube
+var reflectionCube
+var refractionCube
+var buildingElements = null 
 
 init()
 addModel()
-
 animate()
-// loadSampleSite()
 
 
 
 function addModel(){
 
-    let meshes = textureBlock({solution:sampleSoln,reflection:reflectionCube,refraction:refractionCube})
-    meshes.forEach(mesh=>scene.add(mesh))
-
+    buildingElements = textureBlock({solution:sampleSoln,reflection:reflectionCube,refraction:refractionCube})
+    buildingElements.slabs.forEach(mesh=>scene.add(mesh))
+    buildingElements.envelope.forEach(mesh=>scene.add(mesh))
+    
 }
 
 function setCubeMap() {
@@ -86,6 +87,14 @@ function init() {
     initPlane()
 
     window.addEventListener('resize', onWindowResize, false);
+
+    document.body.onkeyup = function(e){
+    if(e.keyCode == 32){
+        //your code
+        console.log('hi')
+        updateTexture({meshes: buildingElements.envelope} )
+    }
+}
 
 }
 

@@ -4,13 +4,18 @@ let refractionCube
 
 export function textureBlock(params) {
 
+    let obj = {
+        envelope: [],
+        slabs: []
+    }
+
     let meshes = []
 
     console.log('sample:: ', sampleSoln)
+
     const {
         blocks
     } = params.solution
-
     reflectionCube = params.reflection
     refractionCube = params.refraction
 
@@ -25,14 +30,15 @@ export function textureBlock(params) {
         } = block
 
         const centroid = utils.avg_Pt(block_shape, 0)
-
         const blockMesh = utils3D.getExtrudedMesh({
+
             shapePts: block_shape,
             depth: block_scale.y * block_f2f,
             centerPt: centroid,
             rotVec: block_rotation,
             scaleVec: block_scale,
             posVec: block_translation
+
         })
 
         let translate = block_translation
@@ -41,15 +47,42 @@ export function textureBlock(params) {
         let shape = block_shape
         let f2f = block_f2f
 
+        // let envelope = applyBlockTexture({shape:shape, translate:translate, rotate:rotate, scale:scale, floorHeight:f2f}) 
         let envelope = applyBlockTexture(shape, translate, rotate, scale, f2f)
         let slabs = applySlabs(block)
 
-        envelope.forEach(mesh => meshes.push(mesh))
-        slabs.forEach(mesh => meshes.push(mesh))
+        envelope.forEach(mesh => obj.envelope.push(mesh))
+        slabs.forEach(mesh => obj.slabs.push(mesh))
 
     }
 
-    return meshes
+    return obj
+
+}
+
+export function updateTexture(params) {
+
+    console.log('update texture')
+
+    let material = proceduralTexture({
+
+        length: Math.random() * 10,
+        height: Math.random() * 10,
+        windowRatio: Math.random() * 10,
+        offsetX: Math.random() * 10,
+        offsetY: Math.random() * 10,
+
+    })
+
+
+    // console.log(params.meshes)
+    params.meshes.forEach(m => m.material = material)
+
+    // params.meshes.forEach(mesh=>mesh.material = material)
+
+
+    return params.meshes
+
 
 }
 
@@ -101,7 +134,15 @@ function applySlabs(block) {
 }
 
 
-function applyBlockTexture(shape, translate, rotate, scale, f2f, options) {
+function applyBlockTexture(shapes, translate, rotate, scale, f2f, options) {
+
+    // create walls 
+
+    let facadeMeshes = shapes.map(shape=>extrudeShape(shape))
+
+    // apply textures 
+
+
 
     let walls = []
 
@@ -120,9 +161,20 @@ function applyBlockTexture(shape, translate, rotate, scale, f2f, options) {
         let ptA = new THREE.Vector3(a.x + translate.x, a.y, a.z + translate.z)
         let ptB = new THREE.Vector3(b.x + translate.x, b.y, b.z + translate.z)
 
-        let wall = extrudeWall(ptA, ptB, height, elev, f2f)
-        walls.push(wall)
-            // scene.add(wall)
+        let mesh = extrudeWall(ptA, ptB, height, elev, f2f) // refactor 
+
+        mesh.material = proceduralTexture({
+
+            length: mesh.geometry.parameters.depth,
+            height: mesh.geometry.parameters.height,
+            windowRatio: 1,
+            offsetX: 1,
+            offsetY: f2f,
+            options: null,  
+
+        })
+
+        walls.push(mesh)
 
     }
 
@@ -131,15 +183,41 @@ function applyBlockTexture(shape, translate, rotate, scale, f2f, options) {
 
 }
 
+function extrudeShape(shape){
+
+    let arr = []
+
+    for (var i = -1; i < shape.length - 1; i++) {
+
+        let a = shape[i]
+
+        if (i == -1) {
+            a = shape[shape.length - 1]
+        }
+
+        let b = shape[i + 1]
+        let height = f2f * scale.y
+        let elev = translate.y
+
+        let ptA = new THREE.Vector3(a.x + translate.x, a.y, a.z + translate.z)
+        let ptB = new THREE.Vector3(b.x + translate.x, b.y, b.z + translate.z)
+
+        let mesh = extrudeWall(ptA, ptB, height, elev, f2f) // refactor 
+
+        arr.push(mesh)
+
+    }
+
+    return arr
+
+}
+
 
 function proceduralTexture(params) {
 
     // ratio = 40% 
 
-
     let t = (1 - params.windowRatio) / 2
-
-
 
     let options = {
 
@@ -181,31 +259,15 @@ function proceduralTexture(params) {
 
 function extrudeWall(ptA, ptB, height, elev, f2f) {
 
-
     var thickness = 0.1
     var length = ptA.distanceTo(ptB)
     var geometry = new THREE.BoxGeometry(thickness, height, length); // align length with z-axis
     geometry.translate(0, height / 2 + elev, length / 2); // so one end is at the origin
-
-
-    let material = proceduralTexture({
-        length: length,
-        height: height,
-        windowRatio: 1,
-        offsetX: 1.5,
-        offsetY: f2f,
-    })
-
-
-
-
-    var wall = new THREE.Mesh(geometry, material);
+    var wall = new THREE.Mesh(geometry);
     wall.position.copy(ptA);
     wall.lookAt(ptB);
-
     wall.castShadow = true;
     wall.receiveShadow = true;
-
 
     return wall
 
