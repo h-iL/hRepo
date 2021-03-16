@@ -102,7 +102,7 @@ function addTextureBuilding()
 function setCamera()
 {
     camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000) 
-    camera.position.set(0, 1.6, 3)
+    camera.position.set(0, 1.6, 1)
 }
 
 function setLight()
@@ -133,11 +133,13 @@ function onWindowResize()
 
 function animate()
 {
+    
     renderer.setAnimationLoop(render)
 }
 
 function render()
 {
+    ThreeMeshUI.update()
     cleanIntersected()
     intersectObjects(controller1)
     intersectObjects(controller2)
@@ -146,27 +148,79 @@ function render()
     renderer.render(scene, camera)
 }
 
-function buildUI()
-{
-    var UIContainer = new ThreeMeshUI.Block(
+function buildUI() {
+
+    var UIContainerBlk = new ThreeMeshUI.Block(
         {
-        width: 1.2,
-        height: 0.7,
-        padding: 0.2,
-        fontFamily: './assets/Roboto-msdf.json',
-        fontTexture: './assets/Roboto-msdf.png',
-    })
+            width: 0.7,
+            height: 0.45,
+            padding: 0.08,
+            fontFamily: './assets/Roboto-msdf.json',
+            fontTexture: './assets/Roboto-msdf.png',
+        })
+
+    //sub block facade selector
+    const facadeSelBlock = new ThreeMeshUI.Block(
+        {
+            width: 0.6,
+            height: 0.3,
+            //padding: 0.2,
+            //fontFamily: './assets/Roboto-msdf.json',
+            //fontTexture: './assets/Roboto-msdf.png',
+        })
+
+    facadeSelBlock.position.set(-0.4, 0, 0)
+
+    //texts for facade selector block (facadeSelBlock)
+    const title = new ThreeMeshUI.Text({ content: 'Facade' })
+    title.set({ fontSize: 0.06 })
+    title.position.set(0, -0.04, 0)
+
+    facadeSelBlock.add(title)
+
+    const buttonOptions = {
+        width: facadeSelBlock.width * 0.3,
+        height: facadeSelBlock.height*0.4,
+        justifyContent:'center',
+        alignContent: 'center',
+        margin: 0.01,
+        borderRadius: 0.075,
+        fontSize:0.04
+    }
+
+    //button 1 blk
+    const buttonPrevBlk = new ThreeMeshUI.Block(buttonOptions)
+    buttonPrevBlk.position.set(-0.1, -0.02, 0)
+    facadeSelBlock.add(buttonPrevBlk)
+
+    //button 1 text    
+    buttonPrevBlk.add(new ThreeMeshUI.Text({content: 'Previous'}))
 
 
-    const text = new ThreeMeshUI.Text({
-        content: "Some text to be displayed"
-    });
+    //button 2 blk
+    const buttonNextBlk = new ThreeMeshUI.Block(buttonOptions)
+    buttonNextBlk.position.set(0.14, -0.02, 0)
+    facadeSelBlock.add(buttonNextBlk)
 
-    UIContainer.add(text)
-    UIContainer.position.set(0,0,0)
+    //button 2 text
+    buttonNextBlk.add(new ThreeMeshUI.Text({ content: 'Next' }))   
+
+    const loader = new THREE.TextureLoader()    
+    loader.load('./assets/button.png', (texture) => { buttonPrevBlk.set({ backgroundTexture: texture }) })
+    loader.load('./assets/button.png', (texture) => { buttonNextBlk.set({ backgroundTexture: texture }) })
+    loader.load('./assets/button.png', (texture) => { facadeSelBlock.set({ backgroundTexture: texture }) })
+    loader.load('./assets/button.png', (texture) => { UIContainerBlk.set({ backgroundTexture: texture }) })    
+
+    UIContainerBlk.add(facadeSelBlock)
+   
+    UIContainerBlk.position.set(0, 1.4, 0)
+    UIContainerBlk.rotation.x=-0.55
+
+    //facadeSelBlock.position.set(0, 1.4, 0)
+    //facadeSelBlock.rotation.x=-0.55
 
     // scene is a THREE.Scene (see three.js)
-    scene.add(UIContainer)
+    scene.add(UIContainerBlk)
 }
 
 function dollyMove()
@@ -543,6 +597,11 @@ function onSelectStart(event)
         controller.attach(object)
 
         controller.userData.selected = object
+
+    }
+
+    elseif ()
+    {
 
     }
 
