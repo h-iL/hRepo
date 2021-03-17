@@ -3,6 +3,7 @@ console.log('sketch.js')
 
 import {textureBlock} from "./proc-tex.js"
 import {updateTexture} from "./proc-tex.js"
+import Lighting from './javascripts/lighting.js'
 
 var container;
 var camera, scene, renderer;
@@ -10,6 +11,8 @@ var pointLight;
 var reflectionCube
 var refractionCube
 var buildingElements = null 
+
+let lighting
 
 init()
 addModel()
@@ -144,11 +147,13 @@ function initPlane() {
 
 function setLights(argument) {
 
+    lighting = Lighting(scene)
+
     var ambient = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambient);
 
-    var sun = setSunlight()
-    scene.add(sun);
+    /*var sun = setSunlight()
+    scene.add(sun);*/
 
 }
 
