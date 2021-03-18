@@ -1,40 +1,68 @@
-console.log('Lighting.js')
+console.log('procedural texture')
+
 
 import Utils from './utils.js'
 
-var Lighting = function(scene) {
+var Sun = function(scene) {
 
-    return new Lighting.init(scene)
+    return new Sun.init(scene)
 
 }
 
 
-Lighting.prototype = {
+Sun.prototype = {
 
     init: function() {
 
         const scope = this
 
         scope.sun = scope.createSun()
-        scope.scene.add(scope.sun.light)
+            // scope.scene.add(scope.sun.light)
         scope.updateSun()
+            // this.createAmbient()
+            // this.createHemisphere()
 
-        scope.createAmbient()
-        scope.createHemisphere()
-
-    },
-
-    update: function(time) {
+        // return this.sun
 
     },
 
-    createSun: function() {
+    getLight: function() {
+
+        return this.sun.light
+
+    },
+
+    getMesh: function(){
+
+        console.log('get mesh')
+
+        const geometry = new THREE.SphereGeometry( 10, 32, 32 );
+        const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+        const sphere = new THREE.Mesh( geometry, material );
+        let position = this.sun.light.position
+        sphere.position.set(position.x, position.y, position.z)
+
+        return sphere 
+
+
+
+    },
+
+    createSun: function(params) {
 
         const scope = this
-        const {radius} = scope.props
-
+        const { radius } = scope.props
         const sun = {}
+
         sun.position = new THREE.Vector3()
+        sun.light = scope.createLight()
+        // sun.mesh = scope.getMesh()
+
+        return sun;
+    },
+
+    createLight: function(params){
+
 
         const light = new THREE.DirectionalLight(0xffffff, 0.3);
 
@@ -42,7 +70,7 @@ Lighting.prototype = {
         light.radius = 1 //tj_note:: changed from 25 to 1
         light.shadow.mapSize.width = 2048;
         light.shadow.mapSize.height = 2048;
-        
+
         const d = 100;
         light.shadow.camera.left = -d;
         light.shadow.camera.right = d;
@@ -51,9 +79,12 @@ Lighting.prototype = {
         light.shadow.camera.far = 5000;
         light.shadow.bias = -0.0001;
 
-        sun.light = light
+        return light 
 
-        return sun;
+    },
+
+    createMesh: function(params)
+{
     },
 
     getSunPosition: function(time, lat, lng) {
@@ -68,19 +99,13 @@ Lighting.prototype = {
     updateSun: function() {
 
         const scope = this
-        const {sun} = scope
-        const {radius, coords, date, time} = scope.props
-
-        const now = Utils.getTime({
-            date: date,
-            time: time,
-            coords: coords
-        })        
+        const { sun } = scope
+        const { radius, coords, date, time } = scope.props
+        const now = Utils.getTime({ date: date, time: time, coords: coords })
 
         const position = scope.getSunPosition(now, coords.lat, coords.lng)
-
-        sun.light.position.set(position.x,position.y,position.z)
-        console.log('Position is:: ', position)
+        sun.light.position.set(position.x, position.y, position.z)
+            // console.log('Position is:: ', position)
 
 
 
@@ -104,7 +129,7 @@ Lighting.prototype = {
 
 }
 
-Lighting.init = function(scene) {
+Sun.init = function(scene) {
 
     this.scene = scene
 
@@ -141,6 +166,6 @@ Lighting.init = function(scene) {
 
 }
 
-Lighting.init.prototype = Lighting.prototype
+Sun.init.prototype = Sun.prototype
 
-export default Lighting
+export default Sun
