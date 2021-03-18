@@ -1,6 +1,7 @@
 console.log('sketch.js')
 
-import {textureBlock,updateTexture} from "./js/proc-tex.js"
+import {textureBlock,updateTexture} from "./javascripts/dbf-proc-tex.js"
+import Sun from './javascripts/dbf-sun.js'
 
 var container;
 var camera, scene, renderer;
@@ -8,6 +9,8 @@ var pointLight;
 var reflectionCube
 var refractionCube
 var buildingElements = null 
+
+let lighting
 
 init()
 addModel()
@@ -142,42 +145,21 @@ function initPlane() {
 
 function setLights(argument) {
 
+    let sun = Sun(scene)
+
+    scene.add(sun.getLight())
+   let mesh = sun.getMesh()
+   scene.add(mesh)
+    // scene.add(sun.getMesh())
+
     var ambient = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambient);
 
-    var sun = setSunlight()
-    scene.add(sun);
+    /*var sun = setSunlight()
+    scene.add(sun);*/
 
 }
 
-function setSunlight() {
-
-    //sets the sun 
-    var c1 = 0xffffff
-    var lightArray = []
-
-    // light
-    var light = new THREE.DirectionalLight(c1, 0.6);
-    light.position.set(100, 100, 500);
-    light.castShadow = true;
-    light.radius = 1000
-    light.shadow.mapSize.width = 2048;
-    light.shadow.mapSize.height = 2048;
-    // light.shadow.mapSize.width = 5000;
-    // light.shadow.mapSize.height = 5000;
-    lightArray.push(light);
-
-    var d = 100;
-    light.shadow.camera.left = -d;
-    light.shadow.camera.right = d;
-    light.shadow.camera.top = d;
-    light.shadow.camera.bottom = -d;
-    light.shadow.camera.far = 3500;
-    light.shadow.bias = -0.0001;
-
-    return light
-
-}
 
 
 function loadSampleSite() {
