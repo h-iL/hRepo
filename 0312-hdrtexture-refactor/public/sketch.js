@@ -2,6 +2,7 @@ console.log('sketch.js')
 
 import {textureBlock,updateTexture} from "./javascripts/dbf-proc-tex.js"
 import Sun from './javascripts/dbf-sun.js'
+// import Lenslare from './javascripts/lensflare/LensFlare.js'
 
 var container;
 var camera, scene, renderer;
@@ -9,6 +10,7 @@ var pointLight;
 var reflectionCube
 var refractionCube
 var buildingElements = null 
+var clock = new THREE.Clock();
 
 let lighting
 
@@ -63,6 +65,8 @@ function init() {
     // renderer.shadowMap.type = THREE.VSMShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
 
     container.appendChild(renderer.domElement);
 
@@ -70,6 +74,9 @@ function init() {
 
     scene = new THREE.Scene();
     scene.background = reflectionCube
+
+    scene.fog = new THREE.Fog(scene.background, 3500, 15000);
+
 
 
     setCamera()
@@ -106,10 +113,14 @@ function setControls() {
 
 function onWindowResize() {
 
+    // camera.aspect = window.innerWidth / window.innerHeight;
+    // camera.updateProjectionMatrix();
+
+    // renderer.setSize(window.innerWidth, window.innerHeight);
+
+        renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
 
 }
 
@@ -121,7 +132,8 @@ function animate() {
 }
 
 function render() {
-
+    var delta = clock.getDelta();
+    // controls.update(delta);
     renderer.render(scene, camera);
 
 }
@@ -148,8 +160,8 @@ function setLights(argument) {
     let sun = Sun(scene)
 
     scene.add(sun.getLight())
-   let mesh = sun.getMesh()
-   scene.add(mesh)
+   // let mesh = sun.getMesh()
+   // scene.add(mesh)
     // scene.add(sun.getMesh())
 
     var ambient = new THREE.AmbientLight(0xffffff, 0.8);
