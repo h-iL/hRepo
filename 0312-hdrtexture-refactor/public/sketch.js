@@ -1,8 +1,6 @@
 console.log('sketch.js')
 
-
-import {textureBlock} from "./proc-tex.js"
-import {updateTexture} from "./proc-tex.js"
+import {textureBlock,updateTexture} from "./js/proc-tex.js"
 
 var container;
 var camera, scene, renderer;
@@ -160,7 +158,7 @@ function setSunlight() {
 
     // light
     var light = new THREE.DirectionalLight(c1, 0.6);
-    light.position.set(100, 1000, 500);
+    light.position.set(100, 100, 500);
     light.castShadow = true;
     light.radius = 1000
     light.shadow.mapSize.width = 2048;
