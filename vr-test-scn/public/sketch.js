@@ -2,9 +2,13 @@ import { BoxGeometry, BufferAttribute, BufferGeometry, LineBasicMaterial } from 
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 import { BoxLineGeometry } from './jsm/geometries/BoxLineGeometry.js'
-import { textureBlock } from './jsm/dbf-proc-tex.js'
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.119.1/examples/jsm/controls/OrbitControls.min.js"
+import {
+    textureBlock,
+    updateTexture
+} from "./jsm/dbf-proc-tex.js"
 
+import Sun from './javascripts/dbf-sun.js'
 
 
 var container
@@ -15,6 +19,9 @@ var controllerGrip1, controllerGrip2
 var group
 var raycaster 
 
+var buildingElements = null
+let reflectionCube = null
+
 var intersected = []
 var tempMatrix = new THREE.Matrix4()
 
@@ -24,9 +31,13 @@ var cameraVector = new THREE.Vector3()
 const prevGamePads = new Map()
 var speedFactor = [0.3, 0.3, 0.3, 0.3]
 
+var buttonObjs = []
 
-var objsToTest = []
+var UIContainerBlk
+let selectState = false
 
+var viewIndex = 0
+var storedPositions=[]
 
 
 init()
@@ -38,7 +49,7 @@ function init() {
     document.body.appendChild(container)
 
     scene = new THREE.Scene()
-    addSky()
+
     setCamera()
 
     controls = new THREE.OrbitControls(camera, container)
@@ -46,6 +57,7 @@ function init() {
     controls.update()   
     
     setLight()
+    initPlane()
 
     group = new THREE.Group()
     scene.add(group)
@@ -62,19 +74,33 @@ function init() {
     //group.add(object)
 
     addTextureBuilding()
+    setCubeMap()
     buildUI()
 
     renderer = new THREE.WebGLRenderer({ antialias: true })
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
+
     renderer.outputEncoding=THREE.sRGBEncoding
-    renderer.shadowMap.enabled=true
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type=THREE.PCFSoftShadowMap
     renderer.xr.enabled = true
     renderer.xr.setFramebufferScaleFactor(2.0)
     container.appendChild(renderer.domElement)
     document.body.appendChild(VRButton.createButton(renderer))
             
     setControls()  
+
+
+    //view 1 - street
+    storedPositions.push(new THREE.Vector3(16, 1.6, 0))
+    //view 2 - inside building
+    storedPositions.push(new THREE.Vector3(30, 1.6, -10))
+    //view 3 - aerial 1
+    storedPositions.push(new THREE.Vector3(0, 20, 100))
+    //view 4 - aerial 2
+    storedPositions.push(new THREE.Vector3(0, 20, -100))
+
     
     dollySetup()
 
@@ -84,10 +110,11 @@ function init() {
 function dollySetup()
 {
     dolly = new THREE.Group()
-    dolly.position.set(0, 0, 0)
+    dolly.position.set(16, 1.6, 0)
     dolly.name = "dolly"
     scene.add(dolly)
-    dolly.add(camera)
+    dolly.add(camera)    
+    dolly.add(UIContainerBlk)
     dolly.add(controller1)
     dolly.add(controller2)
     dolly.add(controllerGrip1)
@@ -96,10 +123,14 @@ function dollySetup()
 
 function addTextureBuilding()
 {
-    
-    var meshes = textureBlock({ solution: sampleSoln, reflection: null, refraction: null })
-    meshes.forEach(mesh => scene.add(mesh))
 
+    buildingElements = textureBlock({
+        solution: sampleSoln,
+        reflection: reflectionCube,
+        refraction: reflectionCube
+    })
+    buildingElements.slabs.forEach(mesh => scene.add(mesh))
+    buildingElements.envelope.forEach(mesh => scene.add(mesh))
 
 }
 
@@ -111,18 +142,31 @@ function setCamera()
 
 function setLight()
 {       
-    scene.add(new THREE.HemisphereLight(0x808080, 0x110E3D, 2.5))
+    let sun = Sun(scene)
+    scene.add(sun.getLight())
 
-    var light = new THREE.DirectionalLight(0xffffff,50)
-    light.position.set(0, 200, 0)
-    light.castShadow = true
-    light.shadow.camera.top = 200
-    light.shadow.camera.bottom = -200
-    light.shadow.camera.right = 200
-    light.shadow.camera.left = -200
-    light.shadow.mapSize.set(4096, 4096)
+    var ambient = new THREE.AmbientLight(0xffffff, 0.8)
+    scene.add(ambient)
 
-    scene.add(light)
+   
+
+}
+
+function initPlane()
+{
+
+    var planeGeometry = new THREE.PlaneGeometry(500, 500);
+    planeGeometry.rotateX(-Math.PI / 2);
+
+    var planeMaterial = new THREE.ShadowMaterial();
+    planeMaterial.opacity = 0.3;
+
+    let plane = new THREE.Mesh(planeGeometry, planeMaterial);
+
+    plane.position.y = -0.5;
+    plane.receiveShadow = true;
+
+    scene.add(plane)
 
 }
 
@@ -154,9 +198,14 @@ function render()
 }
 
 function updateButton()
-{
-    let intersect = raycast()
+{    
+    let intersect
+    setFromController(controller1, raycaster.ray)
+    setFromController(controller2, raycaster.ray)
 
+    intersect = raycast()
+
+    if (intersect) { }
 
     if (intersect && intersect.object.isUI)
     {
@@ -166,7 +215,7 @@ function updateButton()
     }
 
 
-    objsToTest.forEach((obj) =>
+    buttonObjs.forEach((obj) =>
     {
         if ((!intersect || obj !== intersect.object) && obj.isUI)
         {
@@ -178,14 +227,10 @@ function updateButton()
 
 function raycast()
 {
-
-    var rcaster = new THREE.Raycaster()
-
-    return objsToTest.reduce((closestIntersection, obj) =>
+    return buttonObjs.reduce((closestIntersection, obj) =>
     {
-        
+        const intersection = raycaster.intersectObject(obj, true)
 
-        const intersection = rcaster.intersectedObject(obj.true)
 
         if (!intersection[0]) return closestIntersection
         if (!closestIntersection || intersection[0].distance < closestIntersection.distance)
@@ -204,45 +249,64 @@ function raycast()
 }
 
 
-
 function buildUI() {
 
-    var UIContainerBlk = new ThreeMeshUI.Block(
+    UIContainerBlk = new ThreeMeshUI.Block(
         {
-            width: 0.7,
-            height: 0.45,
-            padding: 0.08,
+            justifyContent: 'center',
+            alignContent: 'center',
+            contentDirection: 'row-reverse',
+            fontSize: 0.07,
+            padding: 0.02,
+            borderRadius: 0.08,
             fontFamily: './assets/Roboto-msdf.json',
             fontTexture: './assets/Roboto-msdf.png',
+            backgroundOpacity: 0.2,
+            backgroundColor: new THREE.Color('0xffffff')
+           
         })
+
+    //----------------------------------------------------------------------------------//
 
     //sub block facade selector
     const facadeSelBlock = new ThreeMeshUI.Block(
         {
             width: 0.6,
             height: 0.3,
+            margin: 0.01,
+            backgroundOpacity: 0.4,
+            backgroundColor: new THREE.Color('0xffffff'),
             //padding: 0.2,
-            //fontFamily: './assets/Roboto-msdf.json',
-            //fontTexture: './assets/Roboto-msdf.png',
+            fontFamily: './assets/Roboto-msdf.json',
+            fontTexture: './assets/Roboto-msdf.png',
+            
         })
+
 
     facadeSelBlock.position.set(-0.4, 0, 0)
 
     //texts for facade selector block (facadeSelBlock)
-    const title = new ThreeMeshUI.Text({ content: 'Facade' })
-    title.set({ fontSize: 0.06 })
+    const title = new ThreeMeshUI.Text(
+        {
+            content: 'Facade',
+            fontSize: 0.06,
+            fontColor: new THREE.Color('#2646530')
+        })
+
+
     title.position.set(0, -0.04, 0)
 
     facadeSelBlock.add(title)
 
     const buttonOptions = {
         width: facadeSelBlock.width * 0.3,
-        height: facadeSelBlock.height*0.4,
+        height: facadeSelBlock.height*0.25,
         justifyContent:'center',
         alignContent: 'center',
         margin: 0.01,
-        borderRadius: 0.075,
-        fontSize:0.04
+        borderRadius: 0.025,
+        fontSize: 0.04,
+        offset: 0.055,
     }
 
     //button 1 blk
@@ -263,10 +327,10 @@ function buildUI() {
     buttonNextBlk.add(new ThreeMeshUI.Text({ content: 'Next' }))   
 
     const loader = new THREE.TextureLoader()    
-    loader.load('./assets/button.png', (texture) => { buttonPrevBlk.set({ backgroundTexture: texture }) })
-    loader.load('./assets/button.png', (texture) => { buttonNextBlk.set({ backgroundTexture: texture }) })
-    loader.load('./assets/button.png', (texture) => { facadeSelBlock.set({ backgroundTexture: texture }) })
-    loader.load('./assets/button.png', (texture) => { UIContainerBlk.set({ backgroundTexture: texture }) })    
+    //loader.load('./assets/button.png', (texture) => { buttonPrevBlk.set({ backgroundTexture: texture }) })
+    //loader.load('./assets/button.png', (texture) => { buttonNextBlk.set({ backgroundTexture: texture }) })
+    //loader.load('./assets/button.png', (texture) => { facadeSelBlock.set({ backgroundTexture: texture }) })
+    //loader.load('./assets/button.png', (texture) => { UIContainerBlk.set({ backgroundTexture: texture }) })    
 
     const hoveredStateAttributes =
     {
@@ -274,8 +338,9 @@ function buildUI() {
         attributes:
         {
             offset: 0.035,
-            backgroundColor: new THREE.Color(0x999999),
-            backgroundOpacity: 1,            
+            backgroundColor: new THREE.Color('#029DAF'),
+            backgroundOpacity: 0.5,
+            fontColor: new THREE.Color('0xffffff')
         }
     }
 
@@ -285,21 +350,27 @@ function buildUI() {
         attributes:
         {
             offset: 0.035,
-            backgroundColor: new THREE.Color(0x999999),
-            backgroundOpacity: 0.3,
+            backgroundColor: new THREE.Color('#029DAF'),
+            backgroundOpacity: 0.85,
+            fontColor: new THREE.Color('0xffffff')
         }
     }
 
     const selectedAttributes=
     {
         offset: 0.02,
+        backgroundColor: new THREE.Color('0xffffff'),
+        fontColor: new THREE.Color('#029DAF')
     }
 
     buttonPrevBlk.setupState(
         {
             state: 'selected',
             attributes:selectedAttributes,
-            onSet: () => { /*reserve*/ }
+            onSet: () => {
+                updateTexture({
+                    meshes: buildingElements.envelope
+                }) }
         })
 
     buttonPrevBlk.setupState(hoveredStateAttributes)
@@ -309,24 +380,114 @@ function buildUI() {
         {
             state: 'selected',
             attributes:selectedAttributes,
-            onSet: () => { /*reserve*/ }
+            onSet: () => {
+                updateTexture({
+                    meshes: buildingElements.envelope
+                }) }
         })
 
     buttonNextBlk.setupState(hoveredStateAttributes)
     buttonNextBlk.setupState(idleStateAttributes)
 
-
+    buttonObjs.push(buttonNextBlk,buttonPrevBlk)
 
     UIContainerBlk.add(facadeSelBlock)
-   
-    UIContainerBlk.position.set(0, 1.4, 0)
-    UIContainerBlk.rotation.x=-0.55
 
-    //facadeSelBlock.position.set(0, 1.4, 0)
-    //facadeSelBlock.rotation.x=-0.55
+    //-----------------------------------------------------------------------//
+
+    const viewpointSelBlock = new ThreeMeshUI.Block(
+        {
+            width: 0.6,
+            height: 0.3,
+            margin: 0.01,
+            backgroundOpacity: 0.4,
+            backgroundColor: new THREE.Color('0xffffff')
+            //fontFamily: './assets/Roboto-msdf.json',
+            //fontTexture: './assets/Roboto-msdf.png',
+        })   
+
+    viewpointSelBlock.position.set(0.4, 0, 0)
+
+    //texts for facade selector block (facadeSelBlock)
+    const title2 = new ThreeMeshUI.Text(
+        {
+            content: 'Set View',
+            fontSize: 0.06,
+            fontColor: new THREE.Color('#2646530')
+        })
+    title2.set({ fontSize: 0.06 })
+    title2.position.set(0, -0.04, 0)
+
+    viewpointSelBlock.add(title2)
+
+    //view 1 blk
+    const buttonPrevViewBlk = new ThreeMeshUI.Block(buttonOptions)
+    buttonPrevViewBlk.position.set(-0.1, -0.02, 0)
+    viewpointSelBlock.add(buttonPrevViewBlk)
+    //add text    
+    buttonPrevViewBlk.add(new ThreeMeshUI.Text({ content: 'Previous' }))
+
+
+    //view 2 blk
+    const buttonNextViewBlk = new ThreeMeshUI.Block(buttonOptions)
+    buttonNextViewBlk.position.set(0.1, -0.02, 0)
+    viewpointSelBlock.add(buttonNextViewBlk)
+    //add text    
+    buttonNextViewBlk.add(new ThreeMeshUI.Text({ content: 'Next' }))
+
+    buttonPrevViewBlk.setupState(hoveredStateAttributes)
+    buttonPrevViewBlk.setupState(idleStateAttributes)
+
+    buttonNextViewBlk.setupState(hoveredStateAttributes)
+    buttonNextViewBlk.setupState(idleStateAttributes)
+
+    buttonPrevViewBlk.setupState(
+        {
+            state: 'selected',
+            attributes: selectedAttributes,
+            onSet: () => {
+                updateView(-1)
+            }
+
+        })
+
+    buttonNextViewBlk.setupState(
+        {
+            state: 'selected',
+            attributes: selectedAttributes,
+            onSet: () => {
+                updateView(1)
+
+            }
+
+        })
+
+    buttonObjs.push(buttonPrevViewBlk, buttonNextViewBlk)
+
+    UIContainerBlk.add(viewpointSelBlock)
+    //-----------------------------------------------------------------------//
+   
+    UIContainerBlk.position.set(-0.5, 0.9, -0.5)
+
+    UIContainerBlk.rotation.x = -0.55
+    UIContainerBlk.rotation.y = 0.30
+    UIContainerBlk.rotation.z = 0.2
 
     // scene is a THREE.Scene (see three.js)
     scene.add(UIContainerBlk)
+}
+
+function updateView(num)
+{
+    console.log('change viewpoint')
+
+    viewIndex = (viewIndex + num + storedPositions.length) % storedPositions.length
+
+    dolly.position.set(storedPositions[viewIndex].x, storedPositions[viewIndex].y, storedPositions[viewIndex].z)
+
+    console.log(viewIndex)
+
+
 }
 
 function dollyMove()
@@ -570,9 +731,20 @@ function addSky()
     floor.position.set(0, -0.5, 0)
     floor.rotation.x = -Math.PI/2
     //scene.add(floor)
+}
 
+function setCubeMap()
+{
+    var path = 'textures/cube/clouds'
+    var format= '.png'
 
+    var urls = ['textures/cube/clouds/2.png', 'textures/cube/clouds/4.png', 'textures/cube/clouds/top.png', 'textures/cube/clouds/white.png',
+        'textures/cube/clouds/1.png', 'textures/cube/clouds/3.png']
 
+    reflectionCube = new THREE.CubeTextureLoader().load(urls)
+
+    scene.background = reflectionCube
+    scene.fog = new THREE.Fog(scene.background,3500,15000)
 
 }
 
@@ -610,25 +782,12 @@ function addGrabbableStuff()
     
 }
 
-function generateProceduralCity()
-{
-    let meshes = new THREEx.ProceduralCity
-
-    console.log(meshes)
-
-    meshes.forEach(mesh => scene.add(mesh))
-}
-
 function setControls()
 {
-
     controller1 = renderer.xr.getController(0)
     controller1.name="left"
     controller1.addEventListener('selectstart', onSelectStart)
     controller1.addEventListener('selectend', onSelectEnd)
-
-    
-
 
     //controller1.addEventListener('connected', function (event)
     //{
@@ -691,15 +850,16 @@ function setControls()
 
 function onSelectStart(event)
 {
+    //ui
+    selectState = true
+    //
+
     var controller = event.target;
 
     var intersections = getIntersections(controller)
 
     if (intersections.length > 0)
     {
-        
-        
-
         var intersection = intersections[0]
 
         var object = intersection.object
@@ -708,7 +868,6 @@ function onSelectStart(event)
         controller.attach(object)
 
         controller.userData.selected = object
-
     }
 
     
@@ -717,6 +876,8 @@ function onSelectStart(event)
 
 function onSelectEnd(event)
 {
+    selectState = false
+
     var controller = event.target
 
     if (controller.userData.selected !== undefined)
@@ -744,6 +905,18 @@ function getIntersections(controller) {
     //group for grabbable
     return raycaster.intersectObjects(group.children)
 
+}
+
+function setFromController(controller, ray)
+{
+    tempMatrix.identity().extractRotation(controller.matrixWorld)
+    ray.origin.setFromMatrixPosition(controller.matrixWorld)
+    ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix)
+}
+
+function setPointerAt(controller, vec)
+{
+    const localVec = controller.matrixWorld(vec)
 }
 
 function intersectObjects(controller)

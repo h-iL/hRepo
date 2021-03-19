@@ -13,20 +13,34 @@
         }
     </style>
 
+
+
     <!--get rid of favicon.co error message-->
     <link rel="shortcut icon" href="#">
 </head>
 
 <body>
     <script type="text/javascript" src="/data/sampleSolution3.js"></script>
+
+    <!-- sun position -->
+    <!-- SP: we need to make these all modules eventually..  -->
+    <script src="lib/time/tz.js"></script>
+    <script src="lib/time/moment.js"></script>
+    <script src="lib/time/moment-data.js"></script>
+    <script src="lib/sun/sunCalc.js"></script>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/110/three.min.js"></script>
     <script src="./build/three.js"></script>
 
 
     <script src="./js/OrbitControls.js"></script>
-    <script src="./js/threex.proceduralcity.js"></script>
+
     <script src="./js/utils.js"></script>
     <script src="./js/utils3D.js"></script>
     <script src='https://unpkg.com/three-mesh-ui'></script>
+
+
 
     <script type="module" src="./sketch.js"></script>
 
