@@ -1,4 +1,4 @@
-import { BoxGeometry, BufferAttribute, BufferGeometry, LineBasicMaterial } from './build/three.module.js'
+import { BoxGeometry, BufferAttribute, BufferGeometry, LineBasicMaterial, TextureLoader } from './build/three.module.js'
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 import { BoxLineGeometry } from './jsm/geometries/BoxLineGeometry.js'
@@ -9,6 +9,8 @@ import {
 } from "./jsm/dbf-proc-tex.js"
 
 import Sun from './javascripts/dbf-sun.js'
+import { Lensflare, LensflareElement } from './jsm/objects/Lensflare.js'
+import { Reflector } from './jsm/objects/Reflector.js'
 
 
 var container
@@ -39,6 +41,7 @@ let selectState = false
 var viewIndex = 0
 var storedPositions=[]
 
+let reflector
 
 init()
 animate()
@@ -70,7 +73,7 @@ function init() {
     object.position.set(0, 0, -8)
     object.castShadow=true
     object.receiveShadow = true
-    scene.add(object)
+    //scene.add(object)
     //group.add(object)
 
     addTextureBuilding()
@@ -145,11 +148,43 @@ function setLight()
     let sun = Sun(scene)
     scene.add(sun.getLight())
 
-    var ambient = new THREE.AmbientLight(0xffffff, 0.8)
+    //let sun = new THREE.DirectionalLight('0xffffff',200)
+    //scene.add(sun)
+    //sun.position.set(10,100,10)
+
+    var ambient = new THREE.AmbientLight(0xffffff, 0.6)
     scene.add(ambient)
 
-   
+    const textureFlare0 = new THREE.TextureLoader().load("./textures/lensflare/lensflare1.png")
+    //const textureFlare1 = new THREE.TextureLoader().load("./textures/lensflare/lensflare2.png")
+    const textureFlare2 = new THREE.TextureLoader().load("./textures/lensflare/lensflare3.png")
+    const lensflare = new Lensflare()
+    lensflare.position.set(0, 5, -5)
 
+    lensflare.addElement(new LensflareElement(textureFlare0, 700, 1))
+    lensflare.addElement(new LensflareElement(textureFlare2, 60, 0.6))
+    lensflare.addElement(new LensflareElement(textureFlare2, 70, 0.7))
+    lensflare.addElement(new LensflareElement(textureFlare2, 120, 0.9))
+    lensflare.addElement(new LensflareElement(textureFlare2, 70, 0.4))
+
+    scene.add(lensflare)
+    ambient.add(lensflare)
+
+    //reflector = new Reflector(new THREE.PlaneGeometry(1.4, 1.4), { textureWidth: window.innerWidth * window.devicePixelRatio, textureHeight: window.innerHeight * window.devicePixelRatio })
+
+    //reflector.position.x = 1
+    //reflector.position.y = 0.5
+    //reflector.position.z = -3
+    //reflector.rotation.y = -Math.PI/4
+    //scene.add(reflector)
+
+    //const frameGeometry = new THREE.BoxGeometry(1.5, 2, 0.1)
+    //const frameMaterial = new THREE.MeshPhongMaterial()
+    //const frame = new THREE.Mesh(frameGeometry, frameMaterial)
+    //frame.position.z = -0.07
+    //frame.castShadow = true
+    //frame.receiveShadow = true
+    //reflector.add(frame)
 }
 
 function initPlane()
