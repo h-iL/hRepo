@@ -14,6 +14,7 @@ import { Lensflare, LensflareElement } from './jsm/objects/Lensflare.js'
 import { Reflector } from './jsm/objects/Reflector.js'
 
 
+
 var container
 var camera, scene, renderer
 var controller1, controller2
@@ -67,7 +68,8 @@ function init() {
     scene.add(group)
 
     //addGrabbableStuff()
-    add3DFiles()
+    //add3DFiles()
+    addSanta()
 
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1)
     var boxMaterial = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide })
@@ -842,10 +844,11 @@ function add3DFiles()
 
     gltfLoader.load(
 
-        './assets/glb/tree_1.glb',
+        './assets/glb/car.glb',
 
         function (gltf)
         {
+            
             scene.add(gltf.scene)
         },
 
@@ -855,7 +858,33 @@ function add3DFiles()
 
         console.error(error)
 
-    })
+        })
+
+    //scene.add(treeGroup)
+}
+
+function addSanta()
+{
+    var santa = utils3D.loadFBX(
+        {
+            filename: 'santa.fbx',
+            filepath: './assets/glb/',
+            scale: 0.25,
+            position: new THREE.Vector3(0, 0, 0),
+            material: null,
+            name:'santa'
+
+        })
+
+    //var animationGroup = new THREE.AnimationObjectGroup()
+    //animationGroup.add(santa)
+
+    //var mixer = new THREE.AnimationMixer(animationGroup)
+    //var action = mixer.clipAction(santa.animations[0])
+
+    //action.play()
+    //scene.add(santa)
+
 }
 
 function setControls()
