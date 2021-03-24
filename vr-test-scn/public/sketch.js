@@ -1,4 +1,5 @@
 import { BoxGeometry, BufferAttribute, BufferGeometry, LineBasicMaterial, TextureLoader } from './build/three.module.js'
+import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 import { BoxLineGeometry } from './jsm/geometries/BoxLineGeometry.js'
@@ -66,6 +67,7 @@ function init() {
     scene.add(group)
 
     //addGrabbableStuff()
+    add3DFiles()
 
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1)
     var boxMaterial = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide })
@@ -132,9 +134,15 @@ function addTextureBuilding()
         reflection: reflectionCube,
         refraction: reflectionCube
     })
+
+
     buildingElements.slabs.forEach(mesh => scene.add(mesh))
     buildingElements.envelope.forEach(mesh => scene.add(mesh))
 
+    buildingElements.slabs.forEach(mesh => group.add(mesh))
+    buildingElements.envelope.forEach(mesh => group.add(mesh))
+
+    
 }
 
 function setCamera()
@@ -222,8 +230,9 @@ function animate()
 
 function render()
 {
-    ThreeMeshUI.update()
     cleanIntersected()
+    ThreeMeshUI.update()
+    
     intersectObjects(controller1)
     intersectObjects(controller2)
 
@@ -249,7 +258,6 @@ function updateButton()
         else { intersect.object.setState('hovered') }
     }
 
-
     buttonObjs.forEach((obj) =>
     {
         if ((!intersect || obj !== intersect.object) && obj.isUI)
@@ -265,7 +273,6 @@ function raycast()
     return buttonObjs.reduce((closestIntersection, obj) =>
     {
         const intersection = raycaster.intersectObject(obj, true)
-
 
         if (!intersection[0]) return closestIntersection
         if (!closestIntersection || intersection[0].distance < closestIntersection.distance)
@@ -430,6 +437,8 @@ function buildUI() {
 
     //-----------------------------------------------------------------------//
 
+    //sub block viewpoint selector
+
     const viewpointSelBlock = new ThreeMeshUI.Block(
         {
             width: 0.6,
@@ -483,7 +492,6 @@ function buildUI() {
             onSet: () => {
                 updateView(-1)
             }
-
         })
 
     buttonNextViewBlk.setupState(
@@ -492,7 +500,6 @@ function buildUI() {
             attributes: selectedAttributes,
             onSet: () => {
                 updateView(1)
-
             }
 
         })
@@ -501,6 +508,16 @@ function buildUI() {
 
     UIContainerBlk.add(viewpointSelBlock)
     //-----------------------------------------------------------------------//
+
+    //sub block for generate new solutions selector
+
+    const generateSolutionBlk=
+
+
+
+    //-----------------------------------------------------------------------//
+
+    
    
     UIContainerBlk.position.set(-0.5, 0.9, -0.5)
 
@@ -779,12 +796,13 @@ function setCubeMap()
     reflectionCube = new THREE.CubeTextureLoader().load(urls)
 
     scene.background = reflectionCube
-    scene.fog = new THREE.Fog(scene.background,3500,15000)
+    scene.fog = new THREE.Fog(scene.background,3500,5000)
 
 }
 
 function addGrabbableStuff()
 {    
+    
     group = new THREE.Group()
 
     scene.add(group)
@@ -801,12 +819,13 @@ function addGrabbableStuff()
         var geometry = geometries[Math.floor(Math.random() * geometries.length)]
         var material = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, roughness: 0.7, metalness: 0.1 })
 
-        var object = new THREE.Mesh(geometry, material)
-        object.position.x = Math.floor(Math.random() * 200 - 100) * 5
-        //object.position.y = Math.floor(Math.random() * 200 - 100) * 10
-        object.position.z = Math.floor(Math.random() * 200 - 100) * 5
+        const object = new THREE.Mesh(geometry, material)
 
-        object.scale.setScalar(Math.random()+30)
+        object.position.x = Math.floor(Math.random() * 150 - 100) * 5
+        //object.position.y = Math.floor(Math.random() * 200 - 100) * 10
+        object.position.z = Math.floor(Math.random() * 150 - 100) * 5
+
+        object.scale.setScalar(Math.random()+10)
 
         object.castShadow = true
         object.receiveShadow = true
@@ -815,6 +834,28 @@ function addGrabbableStuff()
     }
 
     
+}
+
+function add3DFiles()
+{
+    const gltfLoader = new GLTFLoader()
+
+    gltfLoader.load(
+
+        './assets/glb/tree_1.glb',
+
+        function (gltf)
+        {
+            scene.add(gltf.scene)
+        },
+
+        undefined,
+
+        function (error) {
+
+        console.error(error)
+
+    })
 }
 
 function setControls()
@@ -889,16 +930,16 @@ function onSelectStart(event)
     selectState = true
     //
 
-    var controller = event.target;
+    const controller = event.target;
 
     var intersections = getIntersections(controller)
 
     if (intersections.length > 0)
     {
-        var intersection = intersections[0]
+        const intersection = intersections[0]
 
-        var object = intersection.object
-        object.material.emissive.b = 1
+        const object = intersection.object
+        object.material.emissive.b=1
 
         controller.attach(object)
 
@@ -913,13 +954,13 @@ function onSelectEnd(event)
 {
     selectState = false
 
-    var controller = event.target
+    const controller = event.target
 
     if (controller.userData.selected !== undefined)
     {
 
-        var object = controller.userData.selected
-        object.material.emissive.b = 0
+        const object = controller.userData.selected
+        object.material.emissive.b=0
 
         //group for grabbable
         group.attach(object)
@@ -938,7 +979,7 @@ function getIntersections(controller) {
     raycaster.ray.direction.set(0, 0, - 1).applyMatrix4(tempMatrix)
 
     //group for grabbable
-    return raycaster.intersectObjects(group.children)
+    return raycaster.intersectObjects(group.children )
 
 }
 
@@ -957,13 +998,18 @@ function setPointerAt(controller, vec)
 function intersectObjects(controller)
 {
     //dont highlight when already selected
-    //if (controller.userData.selected !== undefined) return
+    if (controller.userData.selected !== undefined) return
 
-    var line = controller.getObjectByName("line")
-    var intersections = getIntersections(controller)
+    const line = controller.getObjectByName("line")
+    const intersections = getIntersections(controller)
 
     if (intersections.length > 0) {
-        var intersection = intersections[0]
+        const intersection = intersections[0]
+        const object = intersection.object
+        object.material.emissive.r = 1
+        intersected.push(object)
+        line.scale.z = intersection.distance
+
 
         const session = renderer.xr.getSession()
 
@@ -988,12 +1034,6 @@ function intersectObjects(controller)
             }
         }
 
-        var object = intersection.object
-        object.material.emissive.r = 1
-        intersected.push(object)
-        line.scale.z = intersection.distance
-
-
     }
 
     else
@@ -1004,14 +1044,10 @@ function intersectObjects(controller)
 
 function cleanIntersected() {
     while (intersected.length) {
-        var object = intersected.pop()
-        object.material.emmisive.r = 0
-
-
+        const object = intersected.pop()
+        object.material.emissive.r=0
     }
 }
-
-
 
 function buildController(data)
 {
