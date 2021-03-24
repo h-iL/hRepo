@@ -1,5 +1,7 @@
 import { BoxGeometry, BufferAttribute, BufferGeometry, LineBasicMaterial, TextureLoader } from './build/three.module.js'
 import { GLTFLoader } from './jsm/loaders/GLTFLoader.js'
+import { FBXLoader } from './jsm/loaders/FBXLoader.js'
+
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 import { BoxLineGeometry } from './jsm/geometries/BoxLineGeometry.js'
@@ -15,13 +17,14 @@ import { Reflector } from './jsm/objects/Reflector.js'
 
 
 
+
 var container
 var camera, scene, renderer
 var controller1, controller2
 var controllerGrip1, controllerGrip2
 
 var group
-var raycaster 
+var raycaster
 
 var buildingElements = null
 let reflectionCube = null
@@ -41,7 +44,7 @@ var UIContainerBlk
 let selectState = false
 
 var viewIndex = 0
-var storedPositions=[]
+var storedPositions = []
 
 let reflector
 
@@ -59,8 +62,8 @@ function init() {
 
     controls = new THREE.OrbitControls(camera, container)
     controls.target.set(0, 1.6, 0)
-    controls.update()   
-    
+    controls.update()
+
     setLight()
     initPlane()
 
@@ -68,14 +71,14 @@ function init() {
     scene.add(group)
 
     //addGrabbableStuff()
-    //add3DFiles()
+    add3DFiles()
     addSanta()
 
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1)
     var boxMaterial = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide })
     var object = new THREE.Mesh(boxGeometry, boxMaterial)
     object.position.set(0, 0, -8)
-    object.castShadow=true
+    object.castShadow = true
     object.receiveShadow = true
     //scene.add(object)
     //group.add(object)
@@ -88,15 +91,15 @@ function init() {
     renderer.setPixelRatio(window.devicePixelRatio)
     renderer.setSize(window.innerWidth, window.innerHeight)
 
-    renderer.outputEncoding=THREE.sRGBEncoding
+    renderer.outputEncoding = THREE.sRGBEncoding
     renderer.shadowMap.enabled = true
-    renderer.shadowMap.type=THREE.PCFSoftShadowMap
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
     renderer.xr.enabled = true
     renderer.xr.setFramebufferScaleFactor(2.0)
     container.appendChild(renderer.domElement)
     document.body.appendChild(VRButton.createButton(renderer))
-            
-    setControls()  
+
+    setControls()
 
 
     //view 1 - street
@@ -108,19 +111,18 @@ function init() {
     //view 4 - aerial 2
     storedPositions.push(new THREE.Vector3(0, 20, -100))
 
-    
+
     dollySetup()
 
     window.addEventListener('resize', onWindowResize, false)
 }
 
-function dollySetup()
-{
+function dollySetup() {
     dolly = new THREE.Group()
     dolly.position.set(16, 1.6, 0)
     dolly.name = "dolly"
     scene.add(dolly)
-    dolly.add(camera)    
+    dolly.add(camera)
     dolly.add(UIContainerBlk)
     dolly.add(controller1)
     dolly.add(controller2)
@@ -128,8 +130,7 @@ function dollySetup()
     dolly.add(controllerGrip2)
 }
 
-function addTextureBuilding()
-{
+function addTextureBuilding() {
 
     buildingElements = textureBlock({
         solution: sampleSoln,
@@ -144,17 +145,15 @@ function addTextureBuilding()
     buildingElements.slabs.forEach(mesh => group.add(mesh))
     buildingElements.envelope.forEach(mesh => group.add(mesh))
 
-    
+
 }
 
-function setCamera()
-{
-    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000) 
+function setCamera() {
+    camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
     camera.position.set(0, 1.6, 1)
 }
 
-function setLight()
-{       
+function setLight() {
     let sun = Sun(scene)
     scene.add(sun.getLight())
 
@@ -197,8 +196,7 @@ function setLight()
     //reflector.add(frame)
 }
 
-function initPlane()
-{
+function initPlane() {
 
     var planeGeometry = new THREE.PlaneGeometry(500, 500);
     planeGeometry.rotateX(-Math.PI / 2);
@@ -215,8 +213,7 @@ function initPlane()
 
 }
 
-function onWindowResize()
-{
+function onWindowResize() {
     var width = window.innerWidth
     var height = window.innerHeight
     renderer.setSize(width, height)
@@ -224,17 +221,15 @@ function onWindowResize()
     camera.updateProjectionMatrix()
 }
 
-function animate()
-{
-    
+function animate() {
+
     renderer.setAnimationLoop(render)
 }
 
-function render()
-{
+function render() {
     cleanIntersected()
     ThreeMeshUI.update()
-    
+
     intersectObjects(controller1)
     intersectObjects(controller2)
 
@@ -243,49 +238,37 @@ function render()
     updateButton()
 }
 
-function updateButton()
-{    
+function updateButton() {
     let intersect
     setFromController(controller1, raycaster.ray)
     setFromController(controller2, raycaster.ray)
 
     intersect = raycast()
 
-    if (intersect) { }
+    if (intersect) {}
 
-    if (intersect && intersect.object.isUI)
-    {
-        if (selectState) { intersect.object.setState('selected') }
-
-        else { intersect.object.setState('hovered') }
+    if (intersect && intersect.object.isUI) {
+        if (selectState) { intersect.object.setState('selected') } else { intersect.object.setState('hovered') }
     }
 
-    buttonObjs.forEach((obj) =>
-    {
-        if ((!intersect || obj !== intersect.object) && obj.isUI)
-        {
+    buttonObjs.forEach((obj) => {
+        if ((!intersect || obj !== intersect.object) && obj.isUI) {
             obj.setState('idle')
         }
 
     })
 }
 
-function raycast()
-{
-    return buttonObjs.reduce((closestIntersection, obj) =>
-    {
+function raycast() {
+    return buttonObjs.reduce((closestIntersection, obj) => {
         const intersection = raycaster.intersectObject(obj, true)
 
         if (!intersection[0]) return closestIntersection
-        if (!closestIntersection || intersection[0].distance < closestIntersection.distance)
-        {
+        if (!closestIntersection || intersection[0].distance < closestIntersection.distance) {
             intersection[0].object = obj
 
             return intersection[0]
-        }
-
-        else
-        {
+        } else {
             return closestIntersection
         }
 
@@ -295,47 +278,44 @@ function raycast()
 
 function buildUI() {
 
-    UIContainerBlk = new ThreeMeshUI.Block(
-        {
-            justifyContent: 'center',
-            alignContent: 'center',
-            contentDirection: 'row-reverse',
-            fontSize: 0.07,
-            padding: 0.02,
-            borderRadius: 0.08,
-            fontFamily: './assets/Roboto-msdf.json',
-            fontTexture: './assets/Roboto-msdf.png',
-            backgroundOpacity: 0.2,
-            backgroundColor: new THREE.Color('0xffffff')
-           
-        })
+    UIContainerBlk = new ThreeMeshUI.Block({
+        justifyContent: 'center',
+        alignContent: 'center',
+        contentDirection: 'row-reverse',
+        fontSize: 0.07,
+        padding: 0.02,
+        borderRadius: 0.08,
+        fontFamily: './assets/Roboto-msdf.json',
+        fontTexture: './assets/Roboto-msdf.png',
+        backgroundOpacity: 0.2,
+        backgroundColor: new THREE.Color('0xffffff')
+
+    })
 
     //----------------------------------------------------------------------------------//
 
     //sub block facade selector
-    const facadeSelBlock = new ThreeMeshUI.Block(
-        {
-            width: 0.6,
-            height: 0.3,
-            margin: 0.01,
-            backgroundOpacity: 0.4,
-            backgroundColor: new THREE.Color('0xffffff'),
-            //padding: 0.2,
-            fontFamily: './assets/Roboto-msdf.json',
-            fontTexture: './assets/Roboto-msdf.png',
-            
-        })
+    const facadeSelBlock = new ThreeMeshUI.Block({
+        width: 0.6,
+        height: 0.3,
+        margin: 0.01,
+        backgroundOpacity: 0.4,
+        backgroundColor: new THREE.Color('0xffffff'),
+        //padding: 0.2,
+        fontFamily: './assets/Roboto-msdf.json',
+        fontTexture: './assets/Roboto-msdf.png',
+
+    })
 
 
     facadeSelBlock.position.set(-0.4, 0, 0)
 
     //texts for facade selector block (facadeSelBlock)
-    const title = new ThreeMeshUI.Text(
-        {
-            content: 'Facade',
-            fontSize: 0.06,
-            fontColor: new THREE.Color('#2646530')
-        })
+    const title = new ThreeMeshUI.Text({
+        content: 'Facade',
+        fontSize: 0.06,
+        fontColor: new THREE.Color('#2646530')
+    })
 
 
     title.position.set(0, -0.04, 0)
@@ -344,8 +324,8 @@ function buildUI() {
 
     const buttonOptions = {
         width: facadeSelBlock.width * 0.3,
-        height: facadeSelBlock.height*0.25,
-        justifyContent:'center',
+        height: facadeSelBlock.height * 0.25,
+        justifyContent: 'center',
         alignContent: 'center',
         margin: 0.01,
         borderRadius: 0.025,
@@ -359,7 +339,7 @@ function buildUI() {
     facadeSelBlock.add(buttonPrevBlk)
 
     //button 1 text    
-    buttonPrevBlk.add(new ThreeMeshUI.Text({content: 'Previous'}))
+    buttonPrevBlk.add(new ThreeMeshUI.Text({ content: 'Previous' }))
 
 
     //button 2 blk
@@ -368,19 +348,17 @@ function buildUI() {
     facadeSelBlock.add(buttonNextBlk)
 
     //button 2 text
-    buttonNextBlk.add(new ThreeMeshUI.Text({ content: 'Next' }))   
+    buttonNextBlk.add(new ThreeMeshUI.Text({ content: 'Next' }))
 
-    const loader = new THREE.TextureLoader()    
+    const loader = new THREE.TextureLoader()
     //loader.load('./assets/button.png', (texture) => { buttonPrevBlk.set({ backgroundTexture: texture }) })
     //loader.load('./assets/button.png', (texture) => { buttonNextBlk.set({ backgroundTexture: texture }) })
     //loader.load('./assets/button.png', (texture) => { facadeSelBlock.set({ backgroundTexture: texture }) })
     //loader.load('./assets/button.png', (texture) => { UIContainerBlk.set({ backgroundTexture: texture }) })    
 
-    const hoveredStateAttributes =
-    {
+    const hoveredStateAttributes = {
         state: 'hovered',
-        attributes:
-        {
+        attributes: {
             offset: 0.035,
             backgroundColor: new THREE.Color('#029DAF'),
             backgroundOpacity: 0.5,
@@ -388,11 +366,9 @@ function buildUI() {
         }
     }
 
-    const idleStateAttributes =
-    {
+    const idleStateAttributes = {
         state: 'idle',
-        attributes:
-        {
+        attributes: {
             offset: 0.035,
             backgroundColor: new THREE.Color('#029DAF'),
             backgroundOpacity: 0.85,
@@ -400,40 +376,39 @@ function buildUI() {
         }
     }
 
-    const selectedAttributes=
-    {
+    const selectedAttributes = {
         offset: 0.02,
         backgroundColor: new THREE.Color('0xffffff'),
         fontColor: new THREE.Color('#029DAF')
     }
 
-    buttonPrevBlk.setupState(
-        {
-            state: 'selected',
-            attributes:selectedAttributes,
-            onSet: () => {
-                updateTexture({
-                    meshes: buildingElements.envelope
-                }) }
-        })
+    buttonPrevBlk.setupState({
+        state: 'selected',
+        attributes: selectedAttributes,
+        onSet: () => {
+            updateTexture({
+                meshes: buildingElements.envelope
+            })
+        }
+    })
 
     buttonPrevBlk.setupState(hoveredStateAttributes)
     buttonPrevBlk.setupState(idleStateAttributes)
 
-    buttonNextBlk.setupState(
-        {
-            state: 'selected',
-            attributes:selectedAttributes,
-            onSet: () => {
-                updateTexture({
-                    meshes: buildingElements.envelope
-                }) }
-        })
+    buttonNextBlk.setupState({
+        state: 'selected',
+        attributes: selectedAttributes,
+        onSet: () => {
+            updateTexture({
+                meshes: buildingElements.envelope
+            })
+        }
+    })
 
     buttonNextBlk.setupState(hoveredStateAttributes)
     buttonNextBlk.setupState(idleStateAttributes)
 
-    buttonObjs.push(buttonNextBlk,buttonPrevBlk)
+    buttonObjs.push(buttonNextBlk, buttonPrevBlk)
 
     UIContainerBlk.add(facadeSelBlock)
 
@@ -441,26 +416,24 @@ function buildUI() {
 
     //sub block viewpoint selector
 
-    const viewpointSelBlock = new ThreeMeshUI.Block(
-        {
-            width: 0.6,
-            height: 0.3,
-            margin: 0.01,
-            backgroundOpacity: 0.4,
-            backgroundColor: new THREE.Color('0xffffff')
-            //fontFamily: './assets/Roboto-msdf.json',
-            //fontTexture: './assets/Roboto-msdf.png',
-        })   
+    const viewpointSelBlock = new ThreeMeshUI.Block({
+        width: 0.6,
+        height: 0.3,
+        margin: 0.01,
+        backgroundOpacity: 0.4,
+        backgroundColor: new THREE.Color('0xffffff')
+        //fontFamily: './assets/Roboto-msdf.json',
+        //fontTexture: './assets/Roboto-msdf.png',
+    })
 
     viewpointSelBlock.position.set(0.4, 0, 0)
 
     //texts for facade selector block (facadeSelBlock)
-    const title2 = new ThreeMeshUI.Text(
-        {
-            content: 'Set View',
-            fontSize: 0.06,
-            fontColor: new THREE.Color('#2646530')
-        })
+    const title2 = new ThreeMeshUI.Text({
+        content: 'Set View',
+        fontSize: 0.06,
+        fontColor: new THREE.Color('#2646530')
+    })
     title2.set({ fontSize: 0.06 })
     title2.position.set(0, -0.04, 0)
 
@@ -487,24 +460,22 @@ function buildUI() {
     buttonNextViewBlk.setupState(hoveredStateAttributes)
     buttonNextViewBlk.setupState(idleStateAttributes)
 
-    buttonPrevViewBlk.setupState(
-        {
-            state: 'selected',
-            attributes: selectedAttributes,
-            onSet: () => {
-                updateView(-1)
-            }
-        })
+    buttonPrevViewBlk.setupState({
+        state: 'selected',
+        attributes: selectedAttributes,
+        onSet: () => {
+            updateView(-1)
+        }
+    })
 
-    buttonNextViewBlk.setupState(
-        {
-            state: 'selected',
-            attributes: selectedAttributes,
-            onSet: () => {
-                updateView(1)
-            }
+    buttonNextViewBlk.setupState({
+        state: 'selected',
+        attributes: selectedAttributes,
+        onSet: () => {
+            updateView(1)
+        }
 
-        })
+    })
 
     buttonObjs.push(buttonPrevViewBlk, buttonNextViewBlk)
 
@@ -513,15 +484,15 @@ function buildUI() {
 
     //sub block for generate new solutions selector
 
-    const generateSolutionBlk=
+    const generateSolutionBlk =
 
 
 
-    //-----------------------------------------------------------------------//
+        //-----------------------------------------------------------------------//
 
-    
-   
-    UIContainerBlk.position.set(-0.5, 0.9, -0.5)
+
+
+        UIContainerBlk.position.set(-0.5, 0.9, -0.5)
 
     UIContainerBlk.rotation.x = -0.55
     UIContainerBlk.rotation.y = 0.30
@@ -531,8 +502,7 @@ function buildUI() {
     scene.add(UIContainerBlk)
 }
 
-function updateView(num)
-{
+function updateView(num) {
     console.log('change viewpoint')
 
     viewIndex = (viewIndex + num + storedPositions.length) % storedPositions.length
@@ -544,26 +514,21 @@ function updateView(num)
 
 }
 
-function dollyMove()
-{
+function dollyMove() {
     var handedness = "unknown"
 
     const session = renderer.xr.getSession()
 
     let i = 0
 
-    if (session)
-    {
+    if (session) {
         let xrCamera = renderer.xr.getCamera(camera)
         xrCamera.getWorldDirection(cameraVector);
 
         //a check to prevent console errors if only one input source
-        if (isIterable(session.inputSources))
-        {
-            for (const source of session.inputSources)
-            {
-                if (source && source.handedness)
-                {
+        if (isIterable(session.inputSources)) {
+            for (const source of session.inputSources) {
+                if (source && source.handedness) {
                     handedness = source.handedness //left or right controllers
                 }
 
@@ -571,62 +536,45 @@ function dollyMove()
 
                 const controller = renderer.xr.getController(i++)
                 const old = prevGamePads.get(source)
-                const data =
-                {
+                const data = {
                     handedness: handedness,
                     buttons: source.gamepad.buttons.map((b) => b.value),
                     axes: source.gamepad.axes.slice(0)
                 }
 
-                if (old)
-                {
-                    data.buttons.forEach((value, i) =>
-                    {
+                if (old) {
+                    data.buttons.forEach((value, i) => {
                         //handlers for buttons
-                        if (value !== old.buttons[i] || Math.abs(value) > 0.8)
-                        {
+                        if (value !== old.buttons[i] || Math.abs(value) > 0.8) {
                             //check if it is 'all the way pushed'
-                            if (value === 1)
-                            {
+                            if (value === 1) {
                                 //console.log("Button" + i + "Down")
-                                if (data.handedness == "left")
-                                {
+                                if (data.handedness == "left") {
                                     //console.log("Left Paddle Down")
-                                    if (i == 1)
-                                    {
+                                    if (i == 1) {
                                         dolly.rotateY(-THREE.Math.degToRad(1))
                                     }
-                                    if (i == 3)
-                                    {
+                                    if (i == 3) {
                                         //reset teleport to home position
                                         dolly.position.x = 0
                                         dolly.position.y = 5
                                         dolly.position.z = 0
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     //console.log("Right Paddle Down")
-                                    if (i == 1)
-                                    {
+                                    if (i == 1) {
                                         dolly.rotateY(THREE.Math.degToRad(1))
                                     }
                                 }
-                            }
-                            else
-                            {
+                            } else {
                                 // console.log("Button" + i + "Up")
 
-                                if (i == 1)
-                                {
+                                if (i == 1) {
                                     //use the paddle buttons to rotate
-                                    if (data.handedness == "left")
-                                    {
+                                    if (data.handedness == "left") {
                                         //console.log("Left Paddle Down")
                                         dolly.rotateY(-THREE.Math.degToRad(Math.abs(value)))
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         //console.log("Right Paddle Down");
                                         dolly.rotateY(THREE.Math.degToRad(Math.abs(value)))
                                     }
@@ -635,20 +583,16 @@ function dollyMove()
                         }
                     })
 
-                    data.axes.forEach((value, i) =>
-                    {
+                    data.axes.forEach((value, i) => {
                         //handlers for thumbsticks
                         //if thumbstick axis has moved beyond the minimum threshold from center, windows mixed reality seems to wander up to about .17 with no input
-                        if (Math.abs(value) > 0.2)
-                        {
+                        if (Math.abs(value) > 0.2) {
                             //set the speedFactor per axis, with acceleration when holding above threshold, up to a max speed
                             speedFactor[i] > 1 ? (speedFactor[i] = 1) : (speedFactor[i] *= 1.001)
                             console.log(value, speedFactor[i], i)
-                            if (i == 2)
-                            {
+                            if (i == 2) {
                                 //left and right axis on thumbsticks
-                                if (data.handedness == "left")
-                                {
+                                if (data.handedness == "left") {
                                     // (data.axes[2] > 0) ? console.log('left on left thumbstick') : console.log('right on left thumbstick')
 
                                     //move our dolly
@@ -660,11 +604,9 @@ function dollyMove()
                                     if (
                                         source.gamepad.hapticActuators &&
                                         source.gamepad.hapticActuators[0]
-                                    )
-                                    {
+                                    ) {
                                         var pulseStrength = Math.abs(data.axes[2]) + Math.abs(data.axes[3])
-                                        if (pulseStrength > 0.75)
-                                        {
+                                        if (pulseStrength > 0.75) {
                                             pulseStrength = 0.75
                                         }
 
@@ -673,31 +615,25 @@ function dollyMove()
                                             100
                                         )
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     // (data.axes[2] > 0) ? console.log('left on right thumbstick') : console.log('right on right thumbstick')
                                     dolly.rotateY(-THREE.Math.degToRad(data.axes[2]))
                                 }
                                 controls.update()
                             }
 
-                            if (i == 3)
-                            {
+                            if (i == 3) {
                                 //up and down axis on thumbsticks
-                                if (data.handedness == "left")
-                                {
+                                if (data.handedness == "left") {
                                     // (data.axes[3] > 0) ? console.log('up on left thumbstick') : console.log('down on left thumbstick')
                                     dolly.position.y -= speedFactor[i] * data.axes[3]
                                     //provide haptic feedback if available in browser
                                     if (
                                         source.gamepad.hapticActuators &&
                                         source.gamepad.hapticActuators[0]
-                                    )
-                                    {
+                                    ) {
                                         var pulseStrength = Math.abs(data.axes[3])
-                                        if (pulseStrength > 0.75)
-                                        {
+                                        if (pulseStrength > 0.75) {
                                             pulseStrength = 0.75
                                         }
                                         var didPulse = source.gamepad.hapticActuators[0].pulse(
@@ -705,9 +641,7 @@ function dollyMove()
                                             100
                                         )
                                     }
-                                }
-                                else
-                                {
+                                } else {
                                     // (data.axes[3] > 0) ? console.log('up on right thumbstick') : console.log('down on right thumbstick')
                                     dolly.position.x -= cameraVector.x * speedFactor[i] * data.axes[3]
                                     dolly.position.z -= cameraVector.z * speedFactor[i] * data.axes[3]
@@ -716,26 +650,21 @@ function dollyMove()
                                     if (
                                         source.gamepad.hapticActuators &&
                                         source.gamepad.hapticActuators[0]
-                                    )
-                                    {
+                                    ) {
                                         var pulseStrength = Math.abs(data.axes[2]) + Math.abs(data.axes[3])
-                                        if (pulseStrength > 0.75)
-                                        {
+                                        if (pulseStrength > 0.75) {
                                             pulseStrength = 0.75
                                         }
                                         var didPulse = source.gamepad.hapticActuators[0].pulse(
                                             pulseStrength,
-                                            100 )
+                                            100)
                                     }
                                 }
                                 controls.update()
                             }
-                        }
-                        else
-                        {
+                        } else {
                             //axis below threshold - reset the speedFactor if it is greater than zero  or 0.025 but below our threshold
-                            if (Math.abs(value) > 0.025)
-                            {
+                            if (Math.abs(value) > 0.025) {
                                 speedFactor[i] = 0.025
                             }
                         }
@@ -750,74 +679,67 @@ function dollyMove()
 
 }
 
-function isIterable(obj)
-{  //function to check if object is iterable
+function isIterable(obj) { //function to check if object is iterable
     // checks for null and undefined
-    if (obj == null)
-    {
+    if (obj == null) {
         return false
     }
     return typeof obj[Symbol.iterator] === "function"
 }
-    
-function addSky()
-{//skybox and ground
+
+function addSky() { //skybox and ground
     var skyRoomGeometry = new THREE.BoxGeometry(1000, 1000, 1000)
 
-    var skyMaterials =
-        [
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/3.png'), side: THREE.DoubleSide }),//right  3
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/1.png'), side: THREE.DoubleSide }),//left 1
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/top.png'), side: THREE.DoubleSide }), //top
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/white.png'), side: THREE.DoubleSide }), //bottom
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/2.png'), side: THREE.DoubleSide }),//front 2
-            new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/4.png'), side: THREE.DoubleSide })//back 4
-        ]
+    var skyMaterials = [
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/3.png'), side: THREE.DoubleSide }), //right  3
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/1.png'), side: THREE.DoubleSide }), //left 1
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/top.png'), side: THREE.DoubleSide }), //top
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/white.png'), side: THREE.DoubleSide }), //bottom
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/2.png'), side: THREE.DoubleSide }), //front 2
+        new THREE.MeshBasicMaterial({ map: new THREE.TextureLoader().load('./img/clouds/4.png'), side: THREE.DoubleSide }) //back 4
+    ]
     var skyRoomCube = new THREE.Mesh(skyRoomGeometry, skyMaterials)
-    
+
     skyRoomCube.position.set(0, 0, 0)
     scene.add(skyRoomCube)
 
     var geometry = new THREE.PlaneBufferGeometry(50000, 50000)
-    var material = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 1.0,  })
+    var material = new THREE.MeshStandardMaterial({ color: 0xeeeeee, roughness: 1.0, })
     var floor = new THREE.Mesh(geometry, material)
     floor.receiveShadow = true
     floor.position.set(0, -0.5, 0)
-    floor.rotation.x = -Math.PI/2
+    floor.rotation.x = -Math.PI / 2
     //scene.add(floor)
 }
 
-function setCubeMap()
-{
+function setCubeMap() {
     var path = 'textures/cube/clouds'
-    var format= '.png'
+    var format = '.png'
 
     var urls = ['textures/cube/clouds/2.png', 'textures/cube/clouds/4.png', 'textures/cube/clouds/top.png', 'textures/cube/clouds/white.png',
-        'textures/cube/clouds/1.png', 'textures/cube/clouds/3.png']
+        'textures/cube/clouds/1.png', 'textures/cube/clouds/3.png'
+    ]
 
     reflectionCube = new THREE.CubeTextureLoader().load(urls)
 
     scene.background = reflectionCube
-    scene.fog = new THREE.Fog(scene.background,3500,5000)
+    scene.fog = new THREE.Fog(scene.background, 3500, 5000)
 
 }
 
-function addGrabbableStuff()
-{    
-    
+function addGrabbableStuff() {
+
     group = new THREE.Group()
 
     scene.add(group)
 
-    const geometries =
-        [
-            new THREE.BoxGeometry(1, 1, 1),
+    const geometries = [
+        new THREE.BoxGeometry(1, 1, 1),
 
-            //new THREE.CylinderGeometry(1, 1, 1, 64)
-        ]
+        //new THREE.CylinderGeometry(1, 1, 1, 64)
+    ]
 
-    for (var i = 0; i < 30; i++)
-    {
+    for (var i = 0; i < 30; i++) {
         var geometry = geometries[Math.floor(Math.random() * geometries.length)]
         var material = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, roughness: 0.7, metalness: 0.1 })
 
@@ -827,7 +749,7 @@ function addGrabbableStuff()
         //object.position.y = Math.floor(Math.random() * 200 - 100) * 10
         object.position.z = Math.floor(Math.random() * 150 - 100) * 5
 
-        object.scale.setScalar(Math.random()+10)
+        object.scale.setScalar(Math.random() + 10)
 
         object.castShadow = true
         object.receiveShadow = true
@@ -835,62 +757,59 @@ function addGrabbableStuff()
         group.add(object)
     }
 
-    
+
 }
 
-function add3DFiles()
-{
+function add3DFiles() {
     const gltfLoader = new GLTFLoader()
 
     gltfLoader.load(
 
         './assets/glb/car.glb',
 
-        function (gltf)
-        {
-            
-            scene.add(gltf.scene)
+        function(gltf) {
+
+            console.log('add3DFiles:: ', gltf.scene)
+            scene.add(gltf.scene.children[0])
         },
 
         undefined,
 
-        function (error) {
+        function(error) {
 
-        console.error(error)
+            console.error(error)
 
         })
 
     //scene.add(treeGroup)
 }
 
-function addSanta()
-{
-    var santa = utils3D.loadFBX(
-        {
-            filename: 'santa.fbx',
-            filepath: './assets/glb/',
-            scale: 0.25,
-            position: new THREE.Vector3(0, 0, 0),
-            material: null,
-            name:'santa'
+async function addSanta() {
 
-        })
+    var santa = await loadFBX({
+        filename: 'santa.fbx',
+        filepath: './assets/glb/',
+        scale: 0.25,
+        position: new THREE.Vector3(0, 0, 0),
+        material: null,
+        name: 'santa'
 
-    //var animationGroup = new THREE.AnimationObjectGroup()
-    //animationGroup.add(santa)
+    })
 
-    //var mixer = new THREE.AnimationMixer(animationGroup)
-    //var action = mixer.clipAction(santa.animations[0])
+    var animationGroup = new THREE.AnimationObjectGroup()
+    animationGroup.add(santa)
 
-    //action.play()
-    //scene.add(santa)
+    scene.add(santa)
+    var mixer = new THREE.AnimationMixer(animationGroup)
+    var action = mixer.clipAction(santa.animations[0])
+
+    action.play()
 
 }
 
-function setControls()
-{
+function setControls() {
     controller1 = renderer.xr.getController(0)
-    controller1.name="left"
+    controller1.name = "left"
     controller1.addEventListener('selectstart', onSelectStart)
     controller1.addEventListener('selectend', onSelectEnd)
 
@@ -908,7 +827,7 @@ function setControls()
 
 
     controller2 = renderer.xr.getController(1)
-    controller2.name ="right"
+    controller2.name = "right"
     controller2.addEventListener('selectstart', onSelectStart)
     controller2.addEventListener('selectend', onSelectEnd)
 
@@ -938,7 +857,7 @@ function setControls()
 
 
     //Controller pointing line
-    var geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, - 1)])
+    var geometry = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(0, 0, 0), new THREE.Vector3(0, 0, -1)])
 
     var line = new THREE.Line(geometry)
     line.name = 'line'
@@ -948,13 +867,12 @@ function setControls()
     controller2.add(line.clone())
 
     raycaster = new THREE.Raycaster()
-    
-    
+
+
 
 }
 
-function onSelectStart(event)
-{
+function onSelectStart(event) {
     //ui
     selectState = true
     //
@@ -963,33 +881,30 @@ function onSelectStart(event)
 
     var intersections = getIntersections(controller)
 
-    if (intersections.length > 0)
-    {
+    if (intersections.length > 0) {
         const intersection = intersections[0]
 
         const object = intersection.object
-        object.material.emissive.b=1
+        object.material.emissive.b = 1
 
         controller.attach(object)
 
         controller.userData.selected = object
     }
 
-    
+
 
 }
 
-function onSelectEnd(event)
-{
+function onSelectEnd(event) {
     selectState = false
 
     const controller = event.target
 
-    if (controller.userData.selected !== undefined)
-    {
+    if (controller.userData.selected !== undefined) {
 
         const object = controller.userData.selected
-        object.material.emissive.b=0
+        object.material.emissive.b = 0
 
         //group for grabbable
         group.attach(object)
@@ -1005,27 +920,24 @@ function getIntersections(controller) {
     tempMatrix.identity().extractRotation(controller.matrixWorld)
 
     raycaster.ray.origin.setFromMatrixPosition(controller.matrixWorld)
-    raycaster.ray.direction.set(0, 0, - 1).applyMatrix4(tempMatrix)
+    raycaster.ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix)
 
     //group for grabbable
-    return raycaster.intersectObjects(group.children )
+    return raycaster.intersectObjects(group.children)
 
 }
 
-function setFromController(controller, ray)
-{
+function setFromController(controller, ray) {
     tempMatrix.identity().extractRotation(controller.matrixWorld)
     ray.origin.setFromMatrixPosition(controller.matrixWorld)
     ray.direction.set(0, 0, -1).applyMatrix4(tempMatrix)
 }
 
-function setPointerAt(controller, vec)
-{
+function setPointerAt(controller, vec) {
     const localVec = controller.matrixWorld(vec)
 }
 
-function intersectObjects(controller)
-{
+function intersectObjects(controller) {
     //dont highlight when already selected
     if (controller.userData.selected !== undefined) return
 
@@ -1042,10 +954,8 @@ function intersectObjects(controller)
 
         const session = renderer.xr.getSession()
 
-        if (session)
-        {//only if in webXR session
-            for (const sourceXR of session.inputSources)
-            {
+        if (session) { //only if in webXR session
+            for (const sourceXR of session.inputSources) {
                 if (!sourceXR.gamepad) continue
 
 
@@ -1055,35 +965,29 @@ function intersectObjects(controller)
                     sourceXR.gamepad.hapticActuators &&
                     sourceXR.gamepad.hapticActuators[0] &&
                     sourceXR.handedness == controller.name
-                )
-                {
+                ) {
                     var didPulse = sourceXR.gamepad.hapticActuators[0].pulse(0.05, 5)
 
                 }
             }
         }
 
-    }
-
-    else
-    {
-        line.scale.z=5
+    } else {
+        line.scale.z = 5
     }
 }
 
 function cleanIntersected() {
     while (intersected.length) {
         const object = intersected.pop()
-        object.material.emissive.r=0
+        object.material.emissive.r = 0
     }
 }
 
-function buildController(data)
-{
+function buildController(data) {
     let geometry, material
 
-    switch (data.targetRayMode)
-    {
+    switch (data.targetRayMode) {
         case 'tracked-pointer':
             geometry = new THREE.BufferGeometry()
             geometry.setAttribute('position', new THREE.Float32BufferAttribute([0, 0, 0, 0, 0, -1], 3))
@@ -1102,10 +1006,31 @@ function buildController(data)
 
 }
 
+function loadFBX(params) {
+
+    const { filename, filepath, scale, position, material, name } = params
+
+    return new Promise((resolve, reject) => {
+
+        const loader = new FBXLoader()
+
+        loader.load(filepath + filename, function(object) {
 
 
 
+            object.rotateX(-Math.PI / 2)
+            object.rotateZ(-Math.PI / 2)
 
+            object.scale.set(scale, scale, scale)
+            object.position.set(position.x, position.y, position.z)
 
+            if(object) resolve(object)
+            else reject('Failed')
 
+            
 
+        })
+
+    })
+
+}

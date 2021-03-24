@@ -1,3 +1,5 @@
+
+
 const utils3D = {
 
     loadGLTF: function(params) {
@@ -85,7 +87,7 @@ const utils3D = {
 
         return new Promise((resolve, reject) => {
 
-            const loader = new THREE.FBXLoader()
+            const loader = new FBXLoader()
 
             loader.loadFromText(text, function(object) {
 
@@ -109,7 +111,7 @@ const utils3D = {
 
         return new Promise((resolve, reject) => {
 
-            const loader = new THREE.FBXLoader()
+            const loader = new FBXLoader()
 
             loader.load(filepath + filename, function(object) {
 
