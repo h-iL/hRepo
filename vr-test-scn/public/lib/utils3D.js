@@ -1,3 +1,5 @@
+import { FBXLoader} from "../jsm/loaders/FBXLoader.js"
+
 const utils3D = {
 
     loadGLTF: function(params) {
@@ -309,3 +311,5 @@ const utils3D = {
     }
 
 }
+
+export default utils3D

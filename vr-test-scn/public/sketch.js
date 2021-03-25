@@ -36,7 +36,7 @@ var controls
 var dolly
 var cameraVector = new THREE.Vector3()
 const prevGamePads = new Map()
-var speedFactor = [0.3, 0.3, 0.3, 0.3]
+var speedFactor = [1, 1, 1, 1]//0.3
 
 var buttonObjs = []
 
@@ -72,7 +72,7 @@ function init() {
 
     //addGrabbableStuff()
     add3DFiles()
-    addSanta()
+    //addSanta()
 
     var boxGeometry = new THREE.BoxGeometry(1, 1, 1)
     var boxMaterial = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide })
@@ -434,7 +434,7 @@ function buildUI() {
         fontSize: 0.06,
         fontColor: new THREE.Color('#2646530')
     })
-    title2.set({ fontSize: 0.06 })
+    
     title2.position.set(0, -0.04, 0)
 
     viewpointSelBlock.add(title2)
@@ -484,15 +484,49 @@ function buildUI() {
 
     //sub block for generate new solutions selector
 
-    const generateSolutionBlk =
+    const generateSolutionsBlk = new ThreeMeshUI.Block(
+        {
+        width: 0.6,
+        height: 0.3,
+        margin: 0.01,
+        backgroundOpacity: 0.4,
+        backgroundColor: new THREE.Color('0xffffff')
+        }
+    )
+    
+    const title3 = new ThreeMeshUI.Text({
+        content: 'New Solutions',
+        fontSize: 0.06,
+        fontColor: new THREE.Color('#2646530')
+    })
+
+    title3.position.set(0, -0.04, 0)
+    generateSolutionsBlk.add(title3)
+
+    const buttonSolutionsBlk = new ThreeMeshUI.Block(buttonOptions)
+    buttonSolutionsBlk.position.set(0, -0.02, 0)
+    buttonSolutionsBlk.add(new ThreeMeshUI.Text({ content: 'New' }))
 
 
+    generateSolutionsBlk.add(buttonSolutionsBlk)
 
-        //-----------------------------------------------------------------------//
+    buttonSolutionsBlk.setupState(hoveredStateAttributes)
+    buttonSolutionsBlk.setupState(idleStateAttributes)
+    buttonSolutionsBlk.setupState({
+        state: 'selected',
+        attributes: selectedAttributes,
+        onSet: () => { }
+    })
+    buttonObjs.push(buttonSolutionsBlk)
 
 
+    UIContainerBlk.add(generateSolutionsBlk)
 
-        UIContainerBlk.position.set(-0.5, 0.9, -0.5)
+
+    //-----------------------------------------------------------------------//
+
+
+    UIContainerBlk.position.set(-0.5, 0.9, -0.5)
 
     UIContainerBlk.rotation.x = -0.55
     UIContainerBlk.rotation.y = 0.30
@@ -761,27 +795,51 @@ function addGrabbableStuff() {
 }
 
 function add3DFiles() {
+
     const gltfLoader = new GLTFLoader()
+    var treeGroup = new THREE.Group()
 
-    gltfLoader.load(
+    for (let i = 0; i < 30; i++)
+    {
 
-        './assets/glb/car.glb',
+        gltfLoader.load(
 
-        function(gltf) {
+            './assets/glb/tree_1.glb',
 
-            console.log('add3DFiles:: ', gltf.scene)
-            scene.add(gltf.scene.children[0])
-        },
+            function (gltf) {
 
-        undefined,
+                //treeGroup.add(gltf.scene.children[0])
 
-        function(error) {
+                //let tree = gltf.scene
+                //tree.position.set(5,5,5)
 
-            console.error(error)
+                //console.log('add3DFiles:: ', gltf.scene.children[0])
+                //scene.add(tree)  
 
-        })
+                let tree = gltf.scene
+                tree.castShadow = true
+                tree.receiveShadow = true
+                tree.position.x = Math.floor(Math.random() * 10 - 5) * 2 + 17
+                tree.position.z = Math.floor(Math.random() * 20 - 5) * 2 + 40
 
-    //scene.add(treeGroup)
+                tree.scale.setScalar(Math.random()+1 )
+
+                treeGroup.add(tree)
+
+            },
+
+            undefined,
+
+            function (error) {
+
+                console.error(error)
+
+            })
+    }
+
+    scene.add(treeGroup)
+
+
 }
 
 async function addSanta() {
