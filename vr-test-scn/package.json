@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "express": "^4.17.1",
+    "socket.io": "^4.0.0",
     "three-mesh-ui": "^4.4.9"
   }
 }
