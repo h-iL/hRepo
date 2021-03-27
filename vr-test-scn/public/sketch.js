@@ -56,7 +56,7 @@ function init() {
     controls.target.set(0, 1.6, 0)
     controls.update()   
     
-    setLight()
+    setLights()
     initPlane()
 
     group = new THREE.Group()
@@ -140,17 +140,36 @@ function setCamera()
     camera.position.set(0, 1.6, 1)
 }
 
-function setLight()
-{       
-    let sun = Sun(scene)
-    scene.add(sun.getLight())
 
-    var ambient = new THREE.AmbientLight(0xffffff, 0.8)
-    scene.add(ambient)
+function setLights(argument) {
+
+    let sun = Sun(scene)
+
+    scene.add(sun.getLight())
+   // let mesh = sun.getMesh()
+   // scene.add(mesh)
+    // scene.add(sun.getMesh())
+
+    var ambient = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambient);
+
+    /*var sun = setSunlight()
+    scene.add(sun);*/
+
+}
+
+
+// function setLight()
+// {       
+//     let sun = Sun(scene)
+//     scene.add(sun.getLight())
+
+//     var ambient = new THREE.AmbientLight(0xffffff, 0.8)
+//     scene.add(ambient)
 
    
 
-}
+// }
 
 function initPlane()
 {
