@@ -3,7 +3,7 @@ console.log('procedural texture')
 
 import Utils from './utils.js'
 import {Lensflare} from './lensflare/LensFlare.js'
-import {LensflareElement} from './lensflare/LensFlare.js'
+//import {LensflareElement} from './lensflare/LensFlare.js'
 var Sun = function(scene) {
 
     return new Sun.init(scene)
@@ -83,9 +83,9 @@ Sun.prototype = {
         light.shadow.camera.far = 5000;
         light.shadow.bias = -0.0001;
 
-        let lensflare = this.getLensflare(light)
+        //let lensflare = this.getLensflare(light)
 
-        light.add(lensflare)
+        //light.add(lensflare)
 
         return light
 
