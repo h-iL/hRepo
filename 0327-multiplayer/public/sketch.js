@@ -1,6 +1,9 @@
 console.log('sketch.js')
 
-import {textureBlock,updateTexture} from "./javascripts/dbf-proc-tex.js"
+import {
+    textureBlock,
+    updateTexture
+} from "./javascripts/dbf-proc-tex.js"
 import Sun from './javascripts/dbf-sun.js'
 // import Lenslare from './javascripts/lensflare/LensFlare.js'
 
@@ -9,23 +12,139 @@ var camera, scene, renderer;
 var pointLight;
 var reflectionCube
 var refractionCube
-var buildingElements = null 
+var buildingElements = null
 var clock = new THREE.Clock();
+var controls
+var socket
+var player
+
+var localPlayer
+var globalPlayer
 
 let lighting
 
 init()
+
+initGlobalPlayer()
+initLocalPlayer()
+
 addModel()
+
 animate()
 
+function initGlobalPlayer() {
+    var cubeMaterial1 = new THREE.MeshLambertMaterial({
+        color: 0xffffff,
+        envMap: reflectionCube
+    });
 
 
-function addModel(){
+    const objLoader = new THREE.OBJLoader();
 
-    buildingElements = textureBlock({solution:sampleSoln,reflection:reflectionCube,refraction:refractionCube})
-    buildingElements.slabs.forEach(mesh=>scene.add(mesh))
-    buildingElements.envelope.forEach(mesh=>scene.add(mesh))
-    
+    objLoader.setPath('obj/walt/');
+    objLoader.load('WaltHead.obj', function(object) {
+
+        globalPlayer = object.children[0];
+
+        globalPlayer.scale.multiplyScalar(1);
+        // head.position.y = -500;
+        globalPlayer.material = cubeMaterial1;
+
+        scene.add(globalPlayer);
+
+
+    });
+
+
+    // const geometry = new THREE.SphereGeometry( 5, 32, 32 );
+    // const material = new THREE.MeshBasicMaterial( {color: 0xffff00} );
+    // globalPlayer = new THREE.Mesh( geometry, material );
+    // scene.add( globalPlayer );
+}
+
+
+function initLocalPlayer() {
+
+    player = {
+
+        id: null,
+        color: null,
+        model: null,
+        position: controls.object.position,
+        rotation: {x: null, y: null},
+        target: null,
+    }
+
+    socket = io();
+
+    socket.on('update global', function(data) {
+
+        // console.log('update global')
+
+        // console.log(globalPlayer)
+
+        // console.log('update player:', JSON.stringify(data,null,4))
+
+        globalPlayer.position.x = data.position.x
+        globalPlayer.position.y = data.position.y
+        globalPlayer.position.z = data.position.z
+        // globalPlayer.rotateX(data.rotation.y)
+        // globalPlayer.rotateY(data.rotation.y)
+
+        // globalPlayer.up(new THREE.Vector3(0,0,-1))
+
+        // console.log('target', JSON.stringify(data.target,null,4))
+        globalPlayer.lookAt(0,0,0)
+            // globalPlayer.position.set(data.position.x,data.position.y,data.position.z)
+
+    })
+
+
+
+}
+
+
+function updateLocal() {
+
+}
+
+function updateGlobal() {
+
+    player.rotation.x = controls.getAzimuthalAngle()
+    player.rotation.y = controls.getPolarAngle()
+    player.target = camera.getWorldDirection(new THREE.Vector3(0,0,0));
+
+// camera.getWorldQuaternion( quaternion );
+    player.postion = controls.object.position
+    socket.emit('update', player)
+
+    // globalPlayer.geometry.postion.set(100,100,100)
+
+
+}
+
+function setControls() {
+
+    controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.minPolarAngle = Math.PI / 4;
+    controls.maxPolarAngle = Math.PI / 1.5;
+    controls.addEventListener('change', updateGlobal)
+
+
+}
+
+function addModel() {
+
+    buildingElements = textureBlock({
+        solution: sampleSoln,
+        reflection: reflectionCube,
+        refraction: refractionCube
+    })
+    buildingElements.slabs.forEach(mesh => scene.add(mesh))
+    buildingElements.envelope.forEach(mesh => scene.add(mesh))
+
 }
 
 function setCubeMap() {
@@ -80,15 +199,7 @@ function init() {
 
 
     setCamera()
-
-    //controls
-    var controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableZoom = true;
-    controls.enablePan = true;
-    controls.minPolarAngle = Math.PI / 4;
-    controls.maxPolarAngle = Math.PI / 1.5;
-
-    // set lights for scene 
+    setControls()
     setLights()
 
     // make an invisible plane for shadows 
@@ -96,29 +207,22 @@ function init() {
 
     window.addEventListener('resize', onWindowResize, false);
 
-    document.body.onkeyup = function(e){
-    if(e.keyCode == 32){
-        //your code
-        console.log('hi')
-        updateTexture({meshes: buildingElements.envelope} )
+    document.body.onkeyup = function(e) {
+        if (e.keyCode == 32) {
+            //your code
+            console.log('hi')
+            updateTexture({
+                meshes: buildingElements.envelope
+            })
+        }
     }
-}
 
 }
 
-function setControls() {
-
-
-}
 
 function onWindowResize() {
 
-    // camera.aspect = window.innerWidth / window.innerHeight;
-    // camera.updateProjectionMatrix();
-
-    // renderer.setSize(window.innerWidth, window.innerHeight);
-
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
@@ -160,9 +264,9 @@ function setLights(argument) {
     let sun = Sun(scene)
 
     scene.add(sun.getLight())
-   // let mesh = sun.getMesh()
-   // scene.add(mesh)
-    // scene.add(sun.getMesh())
+        // let mesh = sun.getMesh()
+        // scene.add(mesh)
+        // scene.add(sun.getMesh())
 
     var ambient = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambient);

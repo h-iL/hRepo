@@ -1,39 +1,72 @@
-const app = require('express')();
-const http = require('http').Server(app);
-const io = require('socket.io')(http);
+console.log('my node.js server is running')
 
-app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/public/index.html');
-});
+// creating a server
 
-io.on('connection', (socket) => {
-  console.log('a user connected');
-});
+let express = require('express')
+let app = express()
+let server = app.listen(3000)
+app.use(express.static('public'))
 
-http.listen(3000, () => {
-  console.log('listening on *:3000');
-});
-// console.log('my node.js server is running')
+console.log('my socket server is running')
+
+var io = require('socket.io')(server);
+
+io.on('connection',function(socket){
+
+	console.log('A user connected')
+
+	socket.on('disconnect',function(){
+
+		console.log('a user disconnected')
+	
+	})
+
+	socket.on('update', function(player){
+
+		console.log('update player ' + player.id + ' at position ' + player.position )
+		socket.broadcast.emit('update global', player)
+
+	})
+
+})
+
+/*
+
+io.sockets.on('connection',
+
+      // We are given a websocket object in our function
+      function (socket) {
+
+      	console.log(' connected to client ')
+
+   //      socket.on('getWeather', function( city ){
+
+   //      	let apiKey = '4efbc6b7681a84b8edb85f7a9b618d70';
+   //      	// let city = 'portland';
+   //      	let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
+
+			// request(url, function (err, response, body) {
+
+			// 	// call back function
+
+			//   if(err){
+			  
+			//     console.log('error:', error);
+
+			//   } else {
+			    
+			//     console.log('body:', JSON.stringify(body));
+			//     io.emit('weatherReport', body);
+			  
+			//   }
+			  
+			// });
 
 
-// let express = require('express')
+   //      })
 
+      }
 
+)
+*/
 
-// let app = express()
-
-
-// // const http = require('http').Server(app);
-// // creates a new instance of express exported by the Express module:
-
-// let server = app.listen(3000)
-// // Starts a UNIX socket and listens for connections on the given path. This method is identical to Node’s http.Server.listen().
-
-// app.use(express.static('public'))
-// // Mounts the specified middleware function or functions at the specified path: the middleware function is executed when the base of the requested path matches path.
-// // serve static content 
-
-
-// // const io = require('socket.io')(app);
-
-// console.log('my express server is running')

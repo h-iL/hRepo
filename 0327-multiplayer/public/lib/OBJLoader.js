@@ -1,21 +1,8 @@
-console.warn( "THREE.OBJLoader: As part of the transition to ES6 Modules, the files in 'examples/js' were deprecated in May 2020 (r117) and will be deleted in December 2020 (r124). You can find more information about developing using ES6 Modules in https://threejs.org/docs/#manual/en/introduction/Installation." );
-import {
-	BufferGeometry,
-	FileLoader,
-	Float32BufferAttribute,
-	Group,
-	LineBasicMaterial,
-	LineSegments,
-	Loader,
-	Material,
-	Mesh,
-	MeshPhongMaterial,
-	Points,
-	PointsMaterial,
-	Vector3
-} from "/three.module.js";
+/**
+ * @author mrdoob / http://mrdoob.com/
+ */
 
-var OBJLoader = ( function () {
+THREE.OBJLoader = ( function () {
 
 	// o object_name | g group_name
 	var object_pattern = /^[og]\s*(.+)?/;
@@ -23,15 +10,6 @@ var OBJLoader = ( function () {
 	var material_library_pattern = /^mtllib /;
 	// usemtl material_name
 	var material_use_pattern = /^usemtl /;
-	// usemap map_name
-	var map_use_pattern = /^usemap /;
-
-	var vA = new Vector3();
-	var vB = new Vector3();
-	var vC = new Vector3();
-
-	var ab = new Vector3();
-	var cb = new Vector3();
 
 	function ParserState() {
 
@@ -44,7 +22,6 @@ var OBJLoader = ( function () {
 			colors: [],
 			uvs: [],
 
-			materials: {},
 			materialLibraries: [],
 
 			startObject: function ( name, fromDeclaration ) {
@@ -75,9 +52,7 @@ var OBJLoader = ( function () {
 						vertices: [],
 						normals: [],
 						colors: [],
-						uvs: [],
-						hasNormalIndices: false,
-						hasUVIndices: false
+						uvs: []
 					},
 					materials: [],
 					smooth: true,
@@ -270,35 +245,14 @@ var OBJLoader = ( function () {
 
 			},
 
-			addFaceNormal: function ( a, b, c ) {
-
-				var src = this.vertices;
-				var dst = this.object.geometry.normals;
-
-				vA.fromArray( src, a );
-				vB.fromArray( src, b );
-				vC.fromArray( src, c );
-
-				cb.subVectors( vC, vB );
-				ab.subVectors( vA, vB );
-				cb.cross( ab );
-
-				cb.normalize();
-
-				dst.push( cb.x, cb.y, cb.z );
-				dst.push( cb.x, cb.y, cb.z );
-				dst.push( cb.x, cb.y, cb.z );
-
-			},
-
 			addColor: function ( a, b, c ) {
 
 				var src = this.colors;
 				var dst = this.object.geometry.colors;
 
-				if ( src[ a ] !== undefined ) dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
-				if ( src[ b ] !== undefined ) dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
-				if ( src[ c ] !== undefined ) dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
+				dst.push( src[ a + 0 ], src[ a + 1 ], src[ a + 2 ] );
+				dst.push( src[ b + 0 ], src[ b + 1 ], src[ b + 2 ] );
+				dst.push( src[ c + 0 ], src[ c + 1 ], src[ c + 2 ] );
 
 			},
 
@@ -310,16 +264,6 @@ var OBJLoader = ( function () {
 				dst.push( src[ a + 0 ], src[ a + 1 ] );
 				dst.push( src[ b + 0 ], src[ b + 1 ] );
 				dst.push( src[ c + 0 ], src[ c + 1 ] );
-
-			},
-
-			addDefaultUV: function () {
-
-				var dst = this.object.geometry.uvs;
-
-				dst.push( 0, 0 );
-				dst.push( 0, 0 );
-				dst.push( 0, 0 );
 
 			},
 
@@ -341,47 +285,33 @@ var OBJLoader = ( function () {
 				var ic = this.parseVertexIndex( c, vLen );
 
 				this.addVertex( ia, ib, ic );
-				this.addColor( ia, ib, ic );
-
-				// normals
-
-				if ( na !== undefined && na !== '' ) {
-
-					var nLen = this.normals.length;
-
-					ia = this.parseNormalIndex( na, nLen );
-					ib = this.parseNormalIndex( nb, nLen );
-					ic = this.parseNormalIndex( nc, nLen );
-
-					this.addNormal( ia, ib, ic );
-
-					this.object.geometry.hasNormalIndices = true;
-
-				} else {
-
-					this.addFaceNormal( ia, ib, ic );
-
-				}
-
-				// uvs
 
 				if ( ua !== undefined && ua !== '' ) {
 
 					var uvLen = this.uvs.length;
-
 					ia = this.parseUVIndex( ua, uvLen );
 					ib = this.parseUVIndex( ub, uvLen );
 					ic = this.parseUVIndex( uc, uvLen );
-
 					this.addUV( ia, ib, ic );
 
-					this.object.geometry.hasUVIndices = true;
+				}
 
-				} else {
+				if ( na !== undefined && na !== '' ) {
 
-					// add placeholder values (for inconsistent face definitions)
+					// Normals are many times the same. If so, skip function call and parseInt.
+					var nLen = this.normals.length;
+					ia = this.parseNormalIndex( na, nLen );
 
-					this.addDefaultUV();
+					ib = na === nb ? ia : this.parseNormalIndex( nb, nLen );
+					ic = na === nc ? ia : this.parseNormalIndex( nc, nLen );
+
+					this.addNormal( ia, ib, ic );
+
+				}
+
+				if ( this.colors.length > 0 ) {
+
+					this.addColor( ia, ib, ic );
 
 				}
 
@@ -434,13 +364,13 @@ var OBJLoader = ( function () {
 
 	function OBJLoader( manager ) {
 
-		Loader.call( this, manager );
+		this.manager = ( manager !== undefined ) ? manager : THREE.DefaultLoadingManager;
 
 		this.materials = null;
 
 	}
 
-	OBJLoader.prototype = Object.assign( Object.create( Loader.prototype ), {
+	OBJLoader.prototype = {
 
 		constructor: OBJLoader,
 
@@ -448,33 +378,21 @@ var OBJLoader = ( function () {
 
 			var scope = this;
 
-			var loader = new FileLoader( this.manager );
+			var loader = new THREE.FileLoader( scope.manager );
 			loader.setPath( this.path );
-			loader.setRequestHeader( this.requestHeader );
-			loader.setWithCredentials( this.withCredentials );
 			loader.load( url, function ( text ) {
 
-				try {
-
-					onLoad( scope.parse( text ) );
-
-				} catch ( e ) {
-
-					if ( onError ) {
-
-						onError( e );
-
-					} else {
-
-						console.error( e );
-
-					}
-
-					scope.manager.itemError( url );
-
-				}
+				onLoad( scope.parse( text ) );
 
 			}, onProgress, onError );
+
+		},
+
+		setPath: function ( value ) {
+
+			this.path = value;
+
+			return this;
 
 		},
 
@@ -487,6 +405,8 @@ var OBJLoader = ( function () {
 		},
 
 		parse: function ( text ) {
+
+			console.time( 'OBJLoader' );
 
 			var state = new ParserState();
 
@@ -539,7 +459,7 @@ var OBJLoader = ( function () {
 								parseFloat( data[ 2 ] ),
 								parseFloat( data[ 3 ] )
 							);
-							if ( data.length >= 7 ) {
+							if ( data.length === 8 ) {
 
 								state.colors.push(
 									parseFloat( data[ 4 ] ),
@@ -548,14 +468,7 @@ var OBJLoader = ( function () {
 
 								);
 
-							} else {
-
-								// if no colors are defined, add placeholders so color and vertex indices match
-
-								state.colors.push( undefined, undefined, undefined );
-
 							}
-
 							break;
 						case 'vn':
 							state.normals.push(
@@ -632,7 +545,6 @@ var OBJLoader = ( function () {
 						}
 
 					}
-
 					state.addLineGeometry( lineVertices, lineUVs );
 
 				} else if ( lineFirstChar === 'p' ) {
@@ -665,13 +577,6 @@ var OBJLoader = ( function () {
 					// mtl file
 
 					state.materialLibraries.push( line.substring( 7 ).trim() );
-
-				} else if ( map_use_pattern.test( line ) ) {
-
-					// the line is parsed but ignored since the loader assumes textures are defined MTL files
-					// (according to https://www.okino.com/conv/imp_wave.htm, 'usemap' is the old-style Wavefront texture reference method)
-
-					console.warn( 'THREE.OBJLoader: Rendering identifier "usemap" not supported. Textures must be defined in MTL files.' );
 
 				} else if ( lineFirstChar === 's' ) {
 
@@ -708,7 +613,6 @@ var OBJLoader = ( function () {
 						state.object.smooth = true;
 
 					}
-
 					var material = state.object.currentMaterial();
 					if ( material ) material.smooth = state.object.smooth;
 
@@ -717,7 +621,7 @@ var OBJLoader = ( function () {
 					// Handle null terminated files without exception
 					if ( line === '\0' ) continue;
 
-					console.warn( 'THREE.OBJLoader: Unexpected line: "' + line + '"' );
+					throw new Error( 'THREE.OBJLoader: Unexpected line: "' + line + '"' );
 
 				}
 
@@ -725,7 +629,7 @@ var OBJLoader = ( function () {
 
 			state.finalize();
 
-			var container = new Group();
+			var container = new THREE.Group();
 			container.materialLibraries = [].concat( state.materialLibraries );
 
 			for ( var i = 0, l = state.objects.length; i < l; i ++ ) {
@@ -740,26 +644,30 @@ var OBJLoader = ( function () {
 				// Skip o/g line declarations that did not follow with any faces
 				if ( geometry.vertices.length === 0 ) continue;
 
-				var buffergeometry = new BufferGeometry();
+				var buffergeometry = new THREE.BufferGeometry();
 
-				buffergeometry.setAttribute( 'position', new Float32BufferAttribute( geometry.vertices, 3 ) );
+				buffergeometry.addAttribute( 'position', new THREE.Float32BufferAttribute( geometry.vertices, 3 ) );
 
-				if ( geometry.hasNormalIndices === true ) {
+				if ( geometry.normals.length > 0 ) {
 
-					buffergeometry.setAttribute( 'normal', new Float32BufferAttribute( geometry.normals, 3 ) );
+					buffergeometry.addAttribute( 'normal', new THREE.Float32BufferAttribute( geometry.normals, 3 ) );
+
+				} else {
+
+					buffergeometry.computeVertexNormals();
 
 				}
 
 				if ( geometry.colors.length > 0 ) {
 
 					hasVertexColors = true;
-					buffergeometry.setAttribute( 'color', new Float32BufferAttribute( geometry.colors, 3 ) );
+					buffergeometry.addAttribute( 'color', new THREE.Float32BufferAttribute( geometry.colors, 3 ) );
 
 				}
 
-				if ( geometry.hasUVIndices === true ) {
+				if ( geometry.uvs.length > 0 ) {
 
-					buffergeometry.setAttribute( 'uv', new Float32BufferAttribute( geometry.uvs, 2 ) );
+					buffergeometry.addAttribute( 'uv', new THREE.Float32BufferAttribute( geometry.uvs, 2 ) );
 
 				}
 
@@ -770,56 +678,56 @@ var OBJLoader = ( function () {
 				for ( var mi = 0, miLen = materials.length; mi < miLen; mi ++ ) {
 
 					var sourceMaterial = materials[ mi ];
-					var materialHash = sourceMaterial.name + '_' + sourceMaterial.smooth + '_' + hasVertexColors;
-					var material = state.materials[ materialHash ];
+					var material = undefined;
 
 					if ( this.materials !== null ) {
 
 						material = this.materials.create( sourceMaterial.name );
 
 						// mtl etc. loaders probably can't create line materials correctly, copy properties to a line material.
-						if ( isLine && material && ! ( material instanceof LineBasicMaterial ) ) {
+						if ( isLine && material && ! ( material instanceof THREE.LineBasicMaterial ) ) {
 
-							var materialLine = new LineBasicMaterial();
-							Material.prototype.copy.call( materialLine, material );
+							var materialLine = new THREE.LineBasicMaterial();
+							THREE.Material.prototype.copy.call( materialLine, material );
 							materialLine.color.copy( material.color );
+							materialLine.lights = false;
 							material = materialLine;
 
-						} else if ( isPoints && material && ! ( material instanceof PointsMaterial ) ) {
+						} else if ( isPoints && material && ! ( material instanceof THREE.PointsMaterial ) ) {
 
-							var materialPoints = new PointsMaterial( { size: 10, sizeAttenuation: false } );
-							Material.prototype.copy.call( materialPoints, material );
+							var materialPoints = new THREE.PointsMaterial( { size: 10, sizeAttenuation: false } );
+							THREE.Material.prototype.copy.call( materialPoints, material );
 							materialPoints.color.copy( material.color );
 							materialPoints.map = material.map;
+							materialPoints.lights = false;
 							material = materialPoints;
 
 						}
 
 					}
 
-					if ( material === undefined ) {
+					if ( ! material ) {
 
 						if ( isLine ) {
 
-							material = new LineBasicMaterial();
+							material = new THREE.LineBasicMaterial();
 
 						} else if ( isPoints ) {
 
-							material = new PointsMaterial( { size: 1, sizeAttenuation: false } );
+							material = new THREE.PointsMaterial( { size: 1, sizeAttenuation: false } );
 
 						} else {
 
-							material = new MeshPhongMaterial();
+							material = new THREE.MeshPhongMaterial();
 
 						}
 
 						material.name = sourceMaterial.name;
-						material.flatShading = sourceMaterial.smooth ? false : true;
-						material.vertexColors = hasVertexColors;
-
-						state.materials[ materialHash ] = material;
 
 					}
+
+					material.flatShading = sourceMaterial.smooth ? false : true;
+					material.vertexColors = hasVertexColors ? THREE.VertexColors : THREE.NoColors;
 
 					createdMaterials.push( material );
 
@@ -840,15 +748,15 @@ var OBJLoader = ( function () {
 
 					if ( isLine ) {
 
-						mesh = new LineSegments( buffergeometry, createdMaterials );
+						mesh = new THREE.LineSegments( buffergeometry, createdMaterials );
 
 					} else if ( isPoints ) {
 
-						mesh = new Points( buffergeometry, createdMaterials );
+						mesh = new THREE.Points( buffergeometry, createdMaterials );
 
 					} else {
 
-						mesh = new Mesh( buffergeometry, createdMaterials );
+						mesh = new THREE.Mesh( buffergeometry, createdMaterials );
 
 					}
 
@@ -856,15 +764,15 @@ var OBJLoader = ( function () {
 
 					if ( isLine ) {
 
-						mesh = new LineSegments( buffergeometry, createdMaterials[ 0 ] );
+						mesh = new THREE.LineSegments( buffergeometry, createdMaterials[ 0 ] );
 
 					} else if ( isPoints ) {
 
-						mesh = new Points( buffergeometry, createdMaterials[ 0 ] );
+						mesh = new THREE.Points( buffergeometry, createdMaterials[ 0 ] );
 
 					} else {
 
-						mesh = new Mesh( buffergeometry, createdMaterials[ 0 ] );
+						mesh = new THREE.Mesh( buffergeometry, createdMaterials[ 0 ] );
 
 					}
 
@@ -876,14 +784,14 @@ var OBJLoader = ( function () {
 
 			}
 
+			console.timeEnd( 'OBJLoader' );
+
 			return container;
 
 		}
 
-	} );
+	};
 
 	return OBJLoader;
 
 } )();
-
-export { OBJLoader };

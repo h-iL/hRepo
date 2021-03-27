@@ -83,9 +83,9 @@ Sun.prototype = {
         light.shadow.camera.far = 5000;
         light.shadow.bias = -0.0001;
 
-        let lensflare = this.getLensflare(light)
+        // let lensflare = this.getLensflare(light)
 
-        light.add(lensflare)
+        // light.add(lensflare)
 
         return light
 
