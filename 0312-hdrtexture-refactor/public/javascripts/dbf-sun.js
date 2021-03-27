@@ -98,7 +98,8 @@ Sun.prototype = {
         var textureLoader = new THREE.TextureLoader();
         var textureFlare0 = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/lensflare/lensflare0.png');
         var textureFlare3 = textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/dev/examples/textures/lensflare/lensflare3.png');
-    alert('LENS FLARE LOADED')
+
+        alert('LENS FLARE LOADED')
 
 
         var lensflare = new Lensflare();

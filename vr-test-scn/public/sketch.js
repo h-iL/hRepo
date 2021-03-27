@@ -66,9 +66,10 @@ function init() {
 
     controls = new THREE.OrbitControls(camera, container)
     controls.target.set(0, 1.6, 0)
-    controls.update()
+    controls.update()   
+    
+    setLights()
 
-    setLight()
     initPlane()
 
     group = new THREE.Group()
@@ -168,14 +169,21 @@ function setCamera() {
 
 function setLight() {
     let sun = Sun(scene)
-    scene.add(sun.getLight())
 
+    scene.add(sun.getLight())
+   // let mesh = sun.getMesh()
+   // scene.add(mesh)
+    // scene.add(sun.getMesh())
+
+    var ambient = new THREE.AmbientLight(0xffffff, 0.8);
+    scene.add(ambient);
+
+    /*var sun = setSunlight()
+    scene.add(sun);*/
     //let sun = new THREE.DirectionalLight('0xffffff',200)
     //scene.add(sun)
     //sun.position.set(10,100,10)
 
-    var ambient = new THREE.AmbientLight(0xffffff, 0.6)
-    scene.add(ambient)
 
     const textureFlare0 = new THREE.TextureLoader().load("./textures/lensflare/lensflare1.png")
     //const textureFlare1 = new THREE.TextureLoader().load("./textures/lensflare/lensflare2.png")
@@ -192,6 +200,19 @@ function setLight() {
     scene.add(lensflare)
     ambient.add(lensflare)
 }
+
+// function setLight()
+// {       
+//     let sun = Sun(scene)
+//     scene.add(sun.getLight())
+
+//     var ambient = new THREE.AmbientLight(0xffffff, 0.8)
+//     scene.add(ambient)
+
+   
+
+// }
+
 
 function initPlane() {
 
