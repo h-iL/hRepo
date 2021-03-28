@@ -5,7 +5,7 @@ import { FBXLoader } from './jsm/loaders/FBXLoader.js'
 import { VRButton } from './js/VRButton.js'
 import { XRControllerModelFactory } from './jsm//webxr/XRControllerModelFactory.js'
 import { BoxLineGeometry } from './jsm/geometries/BoxLineGeometry.js'
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.119.1/examples/jsm/controls/OrbitControls.min.js"
+//import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.119.1/examples/jsm/controls/OrbitControls.min.js"
 import {
     textureBlock,
     updateTexture
@@ -48,11 +48,15 @@ var storedPositions = []
 
 let reflector
 
+var socket
+
+
 init()
 animate()
 
 
 function init() {
+
     container = document.createElement("div")
     document.body.appendChild(container)
 
@@ -116,6 +120,15 @@ function init() {
     dollySetup()
 
     window.addEventListener('resize', onWindowResize, false)
+
+    socket = io.connect('http://localhost:3000')
+    socket.on() //add the event and function here
+
+}
+
+function newPlayer()
+{
+
 }
 
 function dollySetup() {
@@ -186,22 +199,6 @@ function setLight() {
 
     scene.add(lensflare)
     ambient.add(lensflare)
-
-    //reflector = new Reflector(new THREE.PlaneGeometry(1.4, 1.4), { textureWidth: window.innerWidth * window.devicePixelRatio, textureHeight: window.innerHeight * window.devicePixelRatio })
-
-    //reflector.position.x = 1
-    //reflector.position.y = 0.5
-    //reflector.position.z = -3
-    //reflector.rotation.y = -Math.PI/4
-    //scene.add(reflector)
-
-    //const frameGeometry = new THREE.BoxGeometry(1.5, 2, 0.1)
-    //const frameMaterial = new THREE.MeshPhongMaterial()
-    //const frame = new THREE.Mesh(frameGeometry, frameMaterial)
-    //frame.position.z = -0.07
-    //frame.castShadow = true
-    //frame.receiveShadow = true
-    //reflector.add(frame)
 }
 
 // function setLight()
@@ -504,7 +501,6 @@ function buildUI() {
     //-----------------------------------------------------------------------//
 
     //sub block for generate new solutions selector
-
     const generateSolutionsBlk = new ThreeMeshUI.Block(
         {
         width: 0.6,
@@ -536,7 +532,7 @@ function buildUI() {
     buttonSolutionsBlk.setupState({
         state: 'selected',
         attributes: selectedAttributes,
-        onSet: () => { }
+        onSet: () => { console.log('new solution generate')}
     })
     buttonObjs.push(buttonSolutionsBlk)
 
