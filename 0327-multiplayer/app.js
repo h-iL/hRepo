@@ -28,6 +28,24 @@ io.on('connection',function(socket){
 
 	})
 
+	socket.on('updateDraw', function(data){
+
+		// console.log('draw ' + player.id + ' at position ' + player.position )
+		socket.broadcast.emit('update paper', data)
+
+	})
+
+	socket.on('toggle pencil', function(bool){
+
+		console.log('toggle pencil!')
+
+		// console.log('draw ' + player.id + ' at position ' + player.position )
+		socket.broadcast.emit('toggle pencil', bool)
+
+	})
+
+
+
 })
 
 /*

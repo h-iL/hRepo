@@ -15,6 +15,13 @@
     <script src="lib/time/moment-data.js"></script>
     <script src="lib/sun/sunCalc.js"></script>
 
+    <!-- JQUERY -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
+
+    <!-- P5JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.2.0/p5.min.js" integrity="sha512-b/htz6gIyFi3dwSoZ0Uv3cuv3Ony7EeKkacgrcVg8CMzu90n777qveu0PBcbZUA7TzyENGtU+qZRuFAkfqgyoQ==" crossorigin="anonymous"></script>
+
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r126/three.min.js" integrity="sha512-n8IpKWzDnBOcBhRlHirMZOUvEq2bLRMuJGjuVqbzUJwtTsgwOgK5aS0c1JA647XWYfqvXve8k3PtZdzpipFjgg==" crossorigin="anonymous"></script>
     <script type="text/javascript" src="/controls/OrbitControls.js"></script>
             <script src="lib/OBJLoader.js"></script>
@@ -25,6 +32,12 @@
 
 <body>
 
+    <div id="paper" style="position: absolute;
+    top: 0px;
+    left: 0px;
+    z-index: 50;
+    background-color: #ffc3c3;"></div> 
+    <button id="toggle-paint" style="position: absolute;right: 50px;top: 50px;">Draw</button>
     <script type="module" src="sketch.js"></script>
 
 </body>
