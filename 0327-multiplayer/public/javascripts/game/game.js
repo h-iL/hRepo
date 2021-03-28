@@ -16,11 +16,11 @@ Game.prototype = {
 
     },
 
-    updateToolbar: function(colour, id){
+    updateToolbar: function(colour, id, name){
 
-    	console.log('button color:', id, colour)
+    	console.log('button color:', id, colour, name )
 
-    	var r= $('<input type="button" value="'+ id + '"/>');
+    	var r= $('<input type="button" value="'+ name + '"/>');
     	// r.addClass("button1");
     	r.css('background-color', ''+colour+'!important;');
 
@@ -69,6 +69,8 @@ Game.prototype = {
 
                 if (!this.avatar) return
 
+
+
                 var cubeMaterial2 = new THREE.MeshLambertMaterial({
 
                     color: tempData.colour
@@ -88,7 +90,7 @@ Game.prototype = {
                 this.scene.add(mesh)
 
                 console.log(tempData.colour	)
-                this.updateToolbar(tempData.colour, tempData.id)
+                this.updateToolbar(tempData.colour, tempData.id, tempData.name)
 
 
 

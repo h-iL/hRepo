@@ -34,10 +34,13 @@ io.on('connection', function(socket) {
 
 
     socket.userData = {
+
+    	ready: false, 
         x: 0,
         y: 0,
         z: 0,
         colour: null,
+        name: 'anonymous', 
         // heading: 0
     }; //Default values;
 
@@ -60,11 +63,14 @@ io.on('connection', function(socket) {
 
     socket.on('init', function(data) {
 
-        console.log('initialize player')
+        console.log('initialize player', data)
 
-        // console.log(`socket.init ${data.model}`);
+        // console.log(`socket.init ${data.name}`);
+        socket.userData.ready = true;
+        socket.userData.name = data.name 
         socket.userData.model = data.model;
         socket.userData.colour = data.colour;
+         // socket.userData.name = data.name;
         socket.userData.x = data.position.x;
         socket.userData.y = data.position.y;
         socket.userData.z = data.position.z;
@@ -149,6 +155,7 @@ setInterval(function() {
         let id = connected[i]
         const socket = sockets[id]
 
+
         //       // const socket = nsp.connected[id];
         // //Only push sockets that have been initialised
         // if (socket.userData.model !== undefined) {
@@ -160,7 +167,8 @@ setInterval(function() {
                 x: socket.userData.x,
                 y: socket.userData.y,
                 z: socket.userData.z,
-                colour: socket.userData.colour
+                colour: socket.userData.colour,
+                name: socket.userData.name
                 // heading: socket.userData.heading,
                 // pb: socket.userData.pb,
                 // action: socket.userData.action
