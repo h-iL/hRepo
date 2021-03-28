@@ -37,7 +37,8 @@ io.on('connection', function(socket) {
         x: 0,
         y: 0,
         z: 0,
-        heading: 0
+        colour: null,
+        // heading: 0
     }; //Default values;
 
     console.log(`${socket.id} connected`);
@@ -67,9 +68,6 @@ io.on('connection', function(socket) {
         socket.userData.x = data.position.x;
         socket.userData.y = data.position.y;
         socket.userData.z = data.position.z;
-        socket.userData.heading = data.h;
-        socket.userData.pb = data.pb;
-        socket.position = {x:0,y:1,z:2}
         socket.userData.action = "Idle";
         
     });
@@ -162,6 +160,7 @@ setInterval(function() {
                 x: socket.userData.x,
                 y: socket.userData.y,
                 z: socket.userData.z,
+                colour: socket.userData.colour
                 // heading: socket.userData.heading,
                 // pb: socket.userData.pb,
                 // action: socket.userData.action

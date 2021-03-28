@@ -16,6 +16,22 @@ Game.prototype = {
 
     },
 
+    updateToolbar: function(colour, id){
+
+    	console.log('button color:', id, colour)
+
+    	var r= $('<input type="button" value="'+ id + '"/>');
+    	// r.addClass("button1");
+    	r.css('background-color', ''+colour+'!important;');
+
+    	// console.log(r)
+
+    	$("#buttons").append(r);
+
+
+
+    },
+
     updateRemotePlayers: function(dt) {
 
         // console.log(this.remoteData)
@@ -29,6 +45,8 @@ Game.prototype = {
         if (!this.initialized) return // if the game is not initalized dont do anything... 
 
         let remoteList = this.remoteData.filter(player => player.id != this.player.id)
+
+
 
         for (var i = 0; i < remoteList.length; i++) {
 
@@ -49,40 +67,29 @@ Game.prototype = {
 
             } else {
 
-
-
-                let newPlayer = {}
-
                 if (!this.avatar) return
 
                 var cubeMaterial2 = new THREE.MeshLambertMaterial({
 
-                    color: '#'+(Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0')
-                    // envMap: reflectionCube
+                    color: tempData.colour
+                        // envMap: reflectionCube
 
                 })
 
                 let mesh = this.avatar.clone()
-
                 mesh.material = cubeMaterial2
-
-
-                // console.log('remote avatar', this.avatar)
-                // mesh.position.x = tempData.x
-                mesh.position.x = Math.random(255)
+                mesh.position.x = tempData.x
                 mesh.position.y = tempData.y
                 mesh.position.z = tempData.z
-
-
                 mesh.lookAt(0, 0, 0)
 
-                // remotePlayer.mesh = newPlayer
 
                 this.remotePlayers[tempData.id] = mesh
                 this.scene.add(mesh)
-                    // this.scene.add(this.remotePlayers[tempData.id].mesh)
 
-                console.log('remote player initialized!!! a ' + tempData.x, tempData.y, tempData.z)
+                console.log(tempData.colour	)
+                this.updateToolbar(tempData.colour, tempData.id)
+
 
 
 

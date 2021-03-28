@@ -6,6 +6,7 @@ import {
 } from "./javascripts/dbf-proc-tex.js"
 import Sun from './javascripts/sun/dbf-sun.js'
 import Game from './javascripts/game/game.js'
+import randomName from './javascripts/name-generator/name-generator.js'
 
 
 var container;
@@ -80,7 +81,7 @@ function initPlayer(game) {
     player = {
 
         id: null,
-        color: null,
+        colour: '#'+(Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0'),
         model: null,
         position: controls.object.position,
         rotation: {
@@ -141,33 +142,6 @@ function initSocket(socket){
         console.log('delete player:', data.id)
         scene.remove(game.remotePlayers[data.id])
         game.remotePlayers = game.remotePlayers.filter((player => player.id != data.id))
-
-        /*
-
-        const players = game.remotePlayers.filter(function(player){
-                if (player.id == data.id){
-                    return player;
-                }
-            });
-            if (players.length>0){
-                let index = game.remotePlayers.indexOf(players[0]);
-                if (index!=-1){
-                    game.remotePlayers.splice( index, 1 );
-                    game.scene.remove(players[0].object);
-                }
-            }else{
-                index = game.initialisingPlayers.indexOf(data.id);
-                if (index!=-1){
-                    const player = game.initialisingPlayers[index];
-                    player.deleted = true;
-                    game.initialisingPlayers.splice(index, 1);
-                }
-            }
-
-
-        */
-
-
 
     })
 
