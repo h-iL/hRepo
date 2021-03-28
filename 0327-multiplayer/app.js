@@ -2,89 +2,321 @@ console.log('my node.js server is running')
 
 // creating a server
 
-let express = require('express')
-let app = express()
-let server = app.listen(3000)
+const express = require('express')
+const app = express()
+const server = app.listen(3000)
+const util = require('util');
+
+let connected = []
+let sockets = {}
+
+
+
+// app.use(express.static('/public/javascripts'));
+// app.get('/',function(req, res) {
+//     res.sendFile(__dirname + '/public/index.html');
+// });
+
+
 app.use(express.static('public'))
 
 console.log('my socket server is running')
 
 var io = require('socket.io')(server);
 
-io.on('connection',function(socket){
+io.on('connection', function(socket) {
 
-	console.log('A user connected')
+    sockets[socket.id] = socket
 
-	socket.on('disconnect',function(){
+    socket.join("room1");
 
-		console.log('a user disconnected')
-	
-	})
+    connected.push(socket.id)
 
-	socket.on('update', function(player){
 
-		console.log('update player ' + player.id + ' at position ' + player.position )
-		socket.broadcast.emit('update global', player)
+    socket.userData = {
+        x: 0,
+        y: 0,
+        z: 0,
+        heading: 0
+    }; //Default values;
 
-	})
+    console.log(`${socket.id} connected`);
 
-	socket.on('updateDraw', function(data){
+    socket.emit('setId', {
+        id: socket.id
+    });
 
-		// console.log('draw ' + player.id + ' at position ' + player.position )
-		socket.broadcast.emit('update paper', data)
+    socket.on('disconnect', function() {
 
-	})
 
-	socket.on('toggle pencil', function(bool){
+        delete sockets[socket.id]
+        connected = connected.filter(id => id != socket.id)
+        socket.broadcast.emit('deletePlayer', {
+            id: socket.id
+        });
 
-		console.log('toggle pencil!')
+    });
 
-		// console.log('draw ' + player.id + ' at position ' + player.position )
-		socket.broadcast.emit('toggle pencil', bool)
+    socket.on('init', function(data) {
 
-	})
+        console.log('initialize player')
 
+        // console.log(`socket.init ${data.model}`);
+        socket.userData.model = data.model;
+        socket.userData.colour = data.colour;
+        socket.userData.x = data.position.x;
+        socket.userData.y = data.position.y;
+        socket.userData.z = data.position.z;
+        socket.userData.heading = data.h;
+        socket.userData.pb = data.pb;
+        socket.position = {x:0,y:1,z:2}
+        socket.userData.action = "Idle";
+        
+    });
+
+    socket.on('update', function(data) {
+
+
+        // console.log('update player ' + player.id + ' at position ' + player.position )
+        socket.userData.x = data.position.x;
+        socket.userData.y = data.position.y;
+        socket.userData.z = data.position.z;
+            // socket.broadcast.emit('update global', player)
+
+    })
+
+    socket.on('updateDraw', function(data) {
+
+        // console.log('draw ' + player.id + ' at position ' + player.position )
+        socket.broadcast.emit('update paper', data)
+
+    })
+
+    socket.on('toggle pencil', function(bool) {
+
+        console.log('toggle pencil!')
+
+        // console.log('draw ' + player.id + ' at position ' + player.position )
+        socket.broadcast.emit('toggle pencil', bool)
+
+    })
+
+
+
+
+
+    //    socket.on('disconnect', function(){
+    // 	socket.broadcast.emit('deletePlayer', { id: socket.id });
+    //    });	
+
+    // socket.on('init', function(data){
+    // 	console.log(`socket.init ${data.model}`);
+    // 	socket.userData.model = data.model;
+    // 	socket.userData.colour = data.colour;
+    // 	socket.userData.x = data.x;
+    // 	socket.userData.y = data.y;
+    // 	socket.userData.z = data.z;
+    // 	socket.userData.heading = data.h;
+    // 	socket.userData.pb = data.pb,
+    // 	socket.userData.action = "Idle";
+    // });
+
+    // socket.on('update', function(data){
+    // 	socket.userData.x = data.x;
+    // 	socket.userData.y = data.y;
+    // 	socket.userData.z = data.z;
+    // 	socket.userData.heading = data.h;
+    // 	socket.userData.pb = data.pb,
+    // 	socket.userData.action = data.action;
+    // });
+
+    // socket.on('chat message', function(data){
+    // 	console.log(`chat message:${data.id} ${data.message}`);
+    // 	io.to(data.id).emit('chat message', { id: socket.id, message: data.message });
+    // })
 
 
 })
 
+
+setInterval(function() {
+
+    let pack = []
+
+
+    // console.log('connected:', connected.length)
+
+    for (var i = 0; i < connected.length; i++) {
+
+        let id = connected[i]
+        const socket = sockets[id]
+
+        //       // const socket = nsp.connected[id];
+        // //Only push sockets that have been initialised
+        // if (socket.userData.model !== undefined) {
+            pack.push({
+                id: socket.id,
+                // model: socket.userData.model,
+                // colour: socket.userData.colour,
+                position: socket.userData.position,
+                x: socket.userData.x,
+                y: socket.userData.y,
+                z: socket.userData.z,
+                // heading: socket.userData.heading,
+                // pb: socket.userData.pb,
+                // action: socket.userData.action
+            });
+        // }
+        //   }
+
+
+
+
+
+    }
+
+    console.log('pack.length', pack.length)
+
+            if (pack.length > 0) io.emit('remoteData', pack);
+    // console.log('set setInterval')
+    // var clients = io.sockets.sockets
+
+    // var clients = io.of('/').clients();
+    // console.log(clients)
+    // console.log(JSON.stringify(util.inspect(clients))
+    // console.log('...')
+    // console.log(JSON.stringify(clients,null,4))
+
+    // for (client in clients){
+    // 	console.log(clients[client])
+    // }
+
+
+
+    // console.log(clients)
+
+    // const nsp = io.of('/');
+
+    // connected.forEach(id=>console.log(sockets[id]))
+
+    // console.log(nsp.sockets)
+
+    // console.log(nsp.connected)
+
+
+    // let pack = []
+
+
+    // for(let id in io.sockets.sockets){
+
+
+    //   for(let id in nsp.sockets){
+
+
+    //   	console.log(id)
+
+    //       // const socket = nsp.connected[id];
+    // //Only push sockets that have been initialised
+    // // if (socket.userData.model!==undefined){
+    // 	// pack.push({
+    // 	// 	id: socket.id,
+    // 	// 	model: socket.userData.model,
+    // 	// 	colour: socket.userData.colour,
+    // 	// 	x: socket.userData.x,
+    // 	// 	y: socket.userData.y,
+    // 	// 	z: socket.userData.z,
+    // 	// 	heading: socket.userData.heading,
+    // 	// 	pb: socket.userData.pb,
+    // 	// 	action: socket.userData.action
+    // 	// });    
+    // // }
+    //   }
+
+
+
+    // if (pack.length>0) io.emit('remoteData', pack);
+
+}, 40);
+
+
 /*
 
-io.sockets.on('connection',
 
-      // We are given a websocket object in our function
-      function (socket) {
+const express = require('express');
+const app = express();
+const http = require('http').Server(app);
+const io = require('socket.io')(http);
 
-      	console.log(' connected to client ')
+app.use(express.static('../../public_html/blockland/'));
+app.use(express.static('../../public_html/libs'));
+app.use(express.static('../../public_html/blockland/v3'));
+app.get('/',function(req, res) {
+    res.sendFile(__dirname + '../../public_html/blockland/v3/index.html');
+});
 
-   //      socket.on('getWeather', function( city ){
+io.sockets.on('connection', function(socket){
+	socket.userData = { x:0, y:0, z:0, heading:0 };//Default values;
+ 
+	console.log(`${socket.id} connected`);
+	socket.emit('setId', { id:socket.id });
+	
+    socket.on('disconnect', function(){
+		socket.broadcast.emit('deletePlayer', { id: socket.id });
+    });	
+	
+	socket.on('init', function(data){
+		console.log(`socket.init ${data.model}`);
+		socket.userData.model = data.model;
+		socket.userData.colour = data.colour;
+		socket.userData.x = data.x;
+		socket.userData.y = data.y;
+		socket.userData.z = data.z;
+		socket.userData.heading = data.h;
+		socket.userData.pb = data.pb,
+		socket.userData.action = "Idle";
+	});
+	
+	socket.on('update', function(data){
+		socket.userData.x = data.x;
+		socket.userData.y = data.y;
+		socket.userData.z = data.z;
+		socket.userData.heading = data.h;
+		socket.userData.pb = data.pb,
+		socket.userData.action = data.action;
+	});
+	
+	socket.on('chat message', function(data){
+		console.log(`chat message:${data.id} ${data.message}`);
+		io.to(data.id).emit('chat message', { id: socket.id, message: data.message });
+	})
+});
 
-   //      	let apiKey = '4efbc6b7681a84b8edb85f7a9b618d70';
-   //      	// let city = 'portland';
-   //      	let url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}`
+http.listen(2002, function(){
+  console.log('listening on *:2002');
+});
 
-			// request(url, function (err, response, body) {
+setInterval(function(){
+	const nsp = io.of('/');
+    let pack = [];
+	
+    for(let id in io.sockets.sockets){
+        const socket = nsp.connected[id];
+		//Only push sockets that have been initialised
+		if (socket.userData.model!==undefined){
+			pack.push({
+				id: socket.id,
+				model: socket.userData.model,
+				colour: socket.userData.colour,
+				x: socket.userData.x,
+				y: socket.userData.y,
+				z: socket.userData.z,
+				heading: socket.userData.heading,
+				pb: socket.userData.pb,
+				action: socket.userData.action
+			});    
+		}
+    }
+	if (pack.length>0) io.emit('remoteData', pack);
+}, 40);
 
-			// 	// call back function
-
-			//   if(err){
-			  
-			//     console.log('error:', error);
-
-			//   } else {
-			    
-			//     console.log('body:', JSON.stringify(body));
-			//     io.emit('weatherReport', body);
-			  
-			//   }
-			  
-			// });
-
-
-   //      })
-
-      }
-
-)
 */
-

@@ -60,7 +60,7 @@ export function textureBlock(params) {
 
 export function updateTexture(params) {
 
-    console.log('update texture')
+    // console.log('update texture')
 
     let options = {
         a:Math.random()*0.75+0.25,

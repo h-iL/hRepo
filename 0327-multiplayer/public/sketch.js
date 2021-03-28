@@ -4,7 +4,9 @@ import {
     textureBlock,
     updateTexture
 } from "./javascripts/dbf-proc-tex.js"
-import Sun from './javascripts/dbf-sun.js'
+import Sun from './javascripts/sun/dbf-sun.js'
+import Game from './javascripts/game/game.js'
+
 
 var container;
 var camera, scene, renderer;
@@ -28,12 +30,15 @@ let paintmode = false
 var p5js
 
 let lighting
+let game
 
 
 
-const geometry = new THREE.ConeGeometry( 10, 50, 32 );
-const material = new THREE.MeshBasicMaterial( {color: 0xff00ff} );
-const pencil = new THREE.Mesh( geometry, material );
+const geometry = new THREE.ConeGeometry(10, 50, 32);
+const material = new THREE.MeshBasicMaterial({
+    color: 0xff00ff
+});
+const pencil = new THREE.Mesh(geometry, material);
 pencil.rotateX(-Math.PI);
 
 
@@ -45,37 +50,32 @@ animate()
 
 function init() {
 
+
     initTHREE()
+
+    game = Game({scene:scene})
+
     addModel()
     initPaper()
-    initGlobalPlayer()
-    initLocalPlayer()
+    initPlayer(game)
+
+    // initGlobalPlayer()
+    // initLocalPlayer()
 }
 
 
 function initGlobalPlayer() {
 
-    var cubeMaterial1 = new THREE.MeshLambertMaterial({
-        color: 0xffffff,
-        envMap: reflectionCube
-    })
 
-    const objLoader = new THREE.OBJLoader();
-
-    objLoader.setPath('obj/walt/')
-    objLoader.load('WaltHead.obj', function(object) {
-
-        globalPlayer = object.children[0];
-        globalPlayer.scale.multiplyScalar(1);
-        globalPlayer.material = cubeMaterial1;
-        scene.add(globalPlayer);
-
-    })
 
 }
 
 
-function initLocalPlayer() {
+function initPlayer(game) {
+
+    console.log('init Local Player')
+
+    // initialize player data 
 
     player = {
 
@@ -90,20 +90,100 @@ function initLocalPlayer() {
         target: null,
     }
 
-    socket = io();
+    game.player = player
+    // initialize socket io 
 
-    socket.on('update global', function(data) {
+    socket = initSocket(io())
 
-        globalPlayer.position.x = data.position.x
-        globalPlayer.position.y = data.position.y
-        globalPlayer.position.z = data.position.z
-        globalPlayer.lookAt(0, 0, 0)
+
+    var cubeMaterial1 = new THREE.MeshLambertMaterial({
+
+        color: 0xffffff,
+        envMap: reflectionCube
 
     })
 
+    const objLoader = new THREE.OBJLoader();
+
+    objLoader.setPath('obj/walt/')
+    objLoader.load('WaltHead.obj', function(object) {
+
+        game.avatar = object.children[0];
+        game.avatar.scale.multiplyScalar(1);
+        game.avatar.material = cubeMaterial1;
+
+        console.log('avatar ready!')
+
+        // scene.add(globalPlayer);
+        socket.emit('init', player)
+
+
+    })
+
+
+}
+
+function initSocket(socket){
+
+
+    socket.on('setId', function(data) {
+
+        console.log('set id:', data.id)
+        player.id = data.id
+
+        console.log('initalize game!')
+        game.initialized = true 
+
+    })
+
+    socket.on('deletePlayer', function(data) {
+
+        console.log('delete player:', data.id)
+        scene.remove(game.remotePlayers[data.id])
+        game.remotePlayers = game.remotePlayers.filter((player => player.id != data.id))
+
+        /*
+
+        const players = game.remotePlayers.filter(function(player){
+                if (player.id == data.id){
+                    return player;
+                }
+            });
+            if (players.length>0){
+                let index = game.remotePlayers.indexOf(players[0]);
+                if (index!=-1){
+                    game.remotePlayers.splice( index, 1 );
+                    game.scene.remove(players[0].object);
+                }
+            }else{
+                index = game.initialisingPlayers.indexOf(data.id);
+                if (index!=-1){
+                    const player = game.initialisingPlayers[index];
+                    player.deleted = true;
+                    game.initialisingPlayers.splice(index, 1);
+                }
+            }
+
+
+        */
+
+
+
+    })
+
+
+    // socket.on('update global', function(data) {
+
+    //     globalPlayer.position.x = data.position.x
+    //     globalPlayer.position.y = data.position.y
+    //     globalPlayer.position.z = data.position.z
+    //     globalPlayer.lookAt(0, 0, 0)
+
+    // })
+
     socket.on('update paper', function(data) {
 
-        paintPaper(data) 
+        paintPaper(data)
 
     })
 
@@ -117,6 +197,57 @@ function initLocalPlayer() {
         togglePencil(paintmode)
 
     })
+
+    socket.on('remoteData', function(data){
+
+        game.remoteData = data 
+
+
+    })
+
+    // player.socket = socket 
+
+
+    //     const player = this;
+    // const socket = io.connect();
+    // socket.on('setId', function(data){
+    //     player.id = data.id;
+    // });
+    // socket.on('remoteData', function(data){
+    //     game.remoteData = data;
+    // });
+    // socket.on('deletePlayer', function(data){
+    //     const players = game.remotePlayers.filter(function(player){
+    //         if (player.id == data.id){
+    //             return player;
+    //         }
+    //     });
+    //     if (players.length>0){
+    //         let index = game.remotePlayers.indexOf(players[0]);
+    //         if (index!=-1){
+    //             game.remotePlayers.splice( index, 1 );
+    //             game.scene.remove(players[0].object);
+    //         }
+    //     }else{
+    //         index = game.initialisingPlayers.indexOf(data.id);
+    //         if (index!=-1){
+    //             const player = game.initialisingPlayers[index];
+    //             player.deleted = true;
+    //             game.initialisingPlayers.splice(index, 1);
+    //         }
+    //     }
+    // });
+
+    // socket.on('chat message', function(data){
+    //     document.getElementById('chat').style.bottom = '0px';
+    //     const player = game.getRemotePlayerById(data.id);
+    //     game.speechBubble.player = player;
+    //     game.chatSocketId = player.id;
+    //     game.activeCamera = game.cameras.chat;
+    //     game.speechBubble.update(data.message);
+    // });
+
+    return socket 
 
 }
 
@@ -132,7 +263,7 @@ function updateGlobal() {
     player.target = camera.getWorldDirection(new THREE.Vector3(0, 0, 0));
 
     // camera.getWorldQuaternion( quaternion );
-    player.postion = controls.object.position
+    player.position = controls.object.position
     socket.emit('update', player)
 
     // globalPlayer.geometry.postion.set(100,100,100)
@@ -247,6 +378,9 @@ function onWindowResize() {
 
 function animate() {
 
+    // const dt = this.clock.getDelta();  
+    let dt = null   
+    game.updateRemotePlayers(dt)
     requestAnimationFrame(animate);
     render();
 
@@ -342,7 +476,7 @@ function initPaper() {
 
 
     // paperMesh.material.map = new THREE.CanvasTexture(p5js.canvas)
-        // p5js.paint(250, 250)
+    // p5js.paint(250, 250)
     // paperMesh.material.needsUpdate = true
 
 
@@ -367,12 +501,12 @@ function raycast() {
 
 function createTexturePainter(p) {
 
-    p.col = [p.random(255),p.random(255),p.random(255)]
+    p.col = [p.random(255), p.random(255), p.random(255)]
 
     p.setup = function() {
 
         let myCanvas = p.createCanvas(512, 512)
-        // p.background(255)
+            // p.background(255)
 
 
     }
@@ -426,8 +560,8 @@ $(document).mousemove(function(e) {
 
         let stroke = {
 
-            pos: pos, 
-            col: p5js.col, 
+            pos: pos,
+            col: p5js.col,
         }
 
         paintPaper(stroke)
@@ -439,8 +573,8 @@ $(document).mousemove(function(e) {
 
 function paintPaper(stroke) {
 
-    p5js.paint(stroke.pos.x + 250, stroke.pos.z + 250, stroke.col[0],stroke.col[1],stroke.col[2])
-    
+    p5js.paint(stroke.pos.x + 250, stroke.pos.z + 250, stroke.col[0], stroke.col[1], stroke.col[2])
+
     pencil.position.set(stroke.pos.x, 15, stroke.pos.z)
 
     paperMesh.material.map = new THREE.CanvasTexture(p5js.canvas)
@@ -451,7 +585,7 @@ function paintPaper(stroke) {
 $('#toggle-paint').click(() => {
 
     paintmode = !paintmode
-    // controls.enabled = !paintmode
+        // controls.enabled = !paintmode
     togglePencil(paintmode)
     socket.emit('toggle pencil', paintmode)
 
@@ -459,9 +593,9 @@ $('#toggle-paint').click(() => {
 
 })
 
-function togglePencil(bool){
+function togglePencil(bool) {
 
-    if (bool){
+    if (bool) {
         scene.add(pencil)
     } else {
         scene.remove(pencil)
