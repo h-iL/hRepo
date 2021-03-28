@@ -1,12 +1,20 @@
 body {
 
-	/*overflow: hidden;*/
+	/*font-family: 'Nunito', sans-serif;*/
+	overflow: hidden;
 }
 
 /*.navbar {
     position: absolute;
     top: 0px;
 }*/
+
+button{
+
+	font-family: 'Nunito', sans-serif;
+}
+
+
 .button1 {
 
 	position: absolute;
@@ -16,7 +24,7 @@ body {
 }
 
 
-.button3 {border-radius: 8px;}
+/*.button3 {border-radius: 8px;}*/
 
 
 #container {

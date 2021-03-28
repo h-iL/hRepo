@@ -56,7 +56,8 @@ io.on('connection', function(socket) {
         delete sockets[socket.id]
         connected = connected.filter(id => id != socket.id)
         socket.broadcast.emit('deletePlayer', {
-            id: socket.id
+            id: socket.id,
+        
         });
 
     });
@@ -70,11 +71,11 @@ io.on('connection', function(socket) {
         socket.userData.name = data.name 
         socket.userData.model = data.model;
         socket.userData.colour = data.colour;
-         // socket.userData.name = data.name;
         socket.userData.x = data.position.x;
         socket.userData.y = data.position.y;
         socket.userData.z = data.position.z;
         socket.userData.action = "Idle";
+
         
     });
 
@@ -158,7 +159,7 @@ setInterval(function() {
 
         //       // const socket = nsp.connected[id];
         // //Only push sockets that have been initialised
-        // if (socket.userData.model !== undefined) {
+        if (socket.userData.ready) {
             pack.push({
                 id: socket.id,
                 // model: socket.userData.model,
@@ -173,7 +174,7 @@ setInterval(function() {
                 // pb: socket.userData.pb,
                 // action: socket.userData.action
             });
-        // }
+        }
         //   }
 
 

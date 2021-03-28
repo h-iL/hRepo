@@ -16,17 +16,20 @@ Game.prototype = {
 
     },
 
-    updateToolbar: function(colour, id, name){
+    addUserTag: function(colour, id, name) {
 
-    	console.log('button color:', id, colour, name )
+        console.log('button color:', id, colour, name)
 
-    	var r= $('<input type="button" value="'+ name + '"/>');
-    	// r.addClass("button1");
-    	r.css('background-color', ''+colour+'!important;');
+        var r = $('<input type="button"  id="' + id + '"value="' + name + '"/>');
 
-    	// console.log(r)
+        let value = colour
+        r.css('background-color', value);
+        r.css('font-family', 'Nunito', 'sans-serif');
 
-    	$("#buttons").append(r);
+
+        console.log(colour)
+
+        $("#buttons").append(r);
 
 
 
@@ -69,12 +72,18 @@ Game.prototype = {
 
                 if (!this.avatar) return
 
+                    console.log('colour:',tempData.colour)
 
 
                 var cubeMaterial2 = new THREE.MeshLambertMaterial({
 
-                    color: tempData.colour
-                        // envMap: reflectionCube
+                    color: tempData.colour,
+                    envMap: this.reflectionCube,
+                    combine: THREE.MixOperation,     
+                    reflectivity: .15,
+                    transparent:true,
+                    opacity:.5
+
 
                 })
 
@@ -89,8 +98,8 @@ Game.prototype = {
                 this.remotePlayers[tempData.id] = mesh
                 this.scene.add(mesh)
 
-                console.log(tempData.colour	)
-                this.updateToolbar(tempData.colour, tempData.id, tempData.name)
+                console.log(tempData.colour)
+                this.addUserTag(tempData.colour, tempData.id, tempData.name)
 
 
 
@@ -124,6 +133,9 @@ Game.init = function(params) {
     this.player = {
         id: null
     }
+
+    this.reflectionCube = params.reflectionCube
+    this.refractionCube = params.refractionCube
 
     this.avatar = null
 

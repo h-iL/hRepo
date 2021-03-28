@@ -6,7 +6,9 @@ import {
 } from "./javascripts/dbf-proc-tex.js"
 import Sun from './javascripts/sun/dbf-sun.js'
 import Game from './javascripts/game/game.js'
-import {getRandomName} from './javascripts/name-generator/name-generator.js'
+import {
+    getRandomName,getRandomAnimal, getRandomColour, colourNameToHex
+} from './javascripts/name-generator/name-generator.js'
 
 
 var container;
@@ -49,12 +51,23 @@ animate()
 
 
 
+
+
+
 function init() {
+
+
+
+
 
 
     initTHREE()
 
-    game = Game({scene:scene})
+    game = Game({
+        scene: scene,
+        reflectionCube: refractionCube,
+        refractionCube: reflectionCube
+    })
 
     addModel()
     initPaper()
@@ -74,16 +87,16 @@ function initGlobalPlayer() {
 
 function initPlayer(game) {
 
-    console.log('init Local Player')
-
-    // initialize player data 
+    let colour = getRandomColour()
+    let name = colour + getRandomAnimal()
 
     player = {
 
         id: null,
-        colour: '#'+(Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0'),
+        colour: colourNameToHex(colour),
+        // colour: '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0'),
         model: null,
-        name: getRandomName(),
+        name: name,
         position: controls.object.position,
         rotation: {
             x: null,
@@ -93,7 +106,7 @@ function initPlayer(game) {
     }
 
     game.player = player
-    // initialize socket io 
+        // initialize socket io 
 
     socket = initSocket(io())
 
@@ -125,7 +138,7 @@ function initPlayer(game) {
 
 }
 
-function initSocket(socket){
+function initSocket(socket) {
 
 
     socket.on('setId', function(data) {
@@ -134,7 +147,9 @@ function initSocket(socket){
         player.id = data.id
 
         console.log('initalize game!')
-        game.initialized = true 
+
+        game.addUserTag(player.colour, data.id, player.name + ' (You)')
+        game.initialized = true
 
     })
 
@@ -147,11 +162,10 @@ function initSocket(socket){
         // delete  game.remotePlayers[data.id];  // or delete person["age"];
         scene.remove(game.remotePlayers[data.id])
 
-        let str = "#"+data.id 
+        let id = "#" + data.id
+        $(id).remove();
 
-        console.log('delete player!', str)
 
-        $( "#buttons" ).remove(str);
 
         // game.remotePlayers = game.remotePlayers.filter((player => player.id != data.id))
 
@@ -184,9 +198,9 @@ function initSocket(socket){
 
     })
 
-    socket.on('remoteData', function(data){
+    socket.on('remoteData', function(data) {
 
-        game.remoteData = data 
+        game.remoteData = data
 
 
     })
@@ -233,7 +247,7 @@ function initSocket(socket){
     //     game.speechBubble.update(data.message);
     // });
 
-    return socket 
+    return socket
 
 }
 
@@ -324,6 +338,7 @@ function initTHREE() {
     container.appendChild(renderer.domElement);
 
     reflectionCube = setCubeMap()
+ refractionCube = setCubeMap()
 
     scene = new THREE.Scene();
     scene.background = reflectionCube
@@ -365,7 +380,7 @@ function onWindowResize() {
 function animate() {
 
     // const dt = this.clock.getDelta();  
-    let dt = null   
+    let dt = null
     game.updateRemotePlayers(dt)
     requestAnimationFrame(animate);
     render();
@@ -457,7 +472,7 @@ function initPaper() {
     paperMesh.material.needsUpdate = true;
 
     paperMesh.rotateX(-Math.PI / 2)
-    scene.add(paperMesh)
+    // scene.add(paperMesh)
 
 
 
