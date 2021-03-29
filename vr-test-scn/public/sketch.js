@@ -14,7 +14,7 @@ import {
 import Sun from './javascripts/dbf-sun.js'
 import { Lensflare, LensflareElement } from './jsm/objects/Lensflare.js'
 import { Reflector } from './jsm/objects/Reflector.js'
-
+import { TubePainter } from './jsm/misc/TubePainter.js'
 
 
 
@@ -50,6 +50,10 @@ let reflector
 
 var socket
 
+const cursor = new THREE.Vector3()
+const painter1 =new TubePainter()
+const painter2 = new TubePainter()
+
 
 init()
 animate()
@@ -68,7 +72,7 @@ function init() {
     controls.target.set(0, 1.6, 0)
     controls.update()   
     
-    setLights()
+    setLight()
 
     initPlane()
 
@@ -79,15 +83,7 @@ function init() {
     add3DFiles()
     //addSanta()
 
-    var boxGeometry = new THREE.BoxGeometry(1, 1, 1)
-    var boxMaterial = new THREE.MeshStandardMaterial({ color: Math.random() * 0xffffff, side: THREE.DoubleSide })
-    var object = new THREE.Mesh(boxGeometry, boxMaterial)
-    object.position.set(0, 0, -8)
-    object.castShadow = true
-    object.receiveShadow = true
-    //scene.add(object)
-    //group.add(object)
-
+  
     addTextureBuilding()
     setCubeMap()
     buildUI()
@@ -104,8 +100,11 @@ function init() {
     container.appendChild(renderer.domElement)
     document.body.appendChild(VRButton.createButton(renderer))
 
-    setControls()
 
+    
+
+    setControls()
+    paintVR()
 
     //view 1 - street
     storedPositions.push(new THREE.Vector3(16, 1.6, 0))
@@ -115,14 +114,40 @@ function init() {
     storedPositions.push(new THREE.Vector3(0, 20, 100))
     //view 4 - aerial 2
     storedPositions.push(new THREE.Vector3(0, 20, -100))
+    //view 5 - trees
+    storedPositions.push(new THREE.Vector3(-37, 1.6, 0))
+
 
 
     dollySetup()
+
+   
+
 
     window.addEventListener('resize', onWindowResize, false)
 
     socket = io.connect('http://localhost:3000')
     socket.on() //add the event and function here
+
+}
+
+function paintVR()
+{
+    
+    scene.add(painter1.mesh)
+
+    scene.add(painter2.mesh)
+
+    const cylinderGeo = new THREE.CylinderGeometry(0.01, 0.02, 0.08, 5)
+    cylinderGeo.rotateX(-Math.PI / 2)
+    const brushMesh = new THREE.Mesh(cylinderGeo, new THREE.MeshStandardMaterial({ flatShading: true }))
+    const pivot = new THREE.Mesh(new THREE.IcosahedronGeometry(0.01, 3))
+    pivot.name = 'pivot'
+    pivot.position.z = -0.05
+    brushMesh.add(pivot)
+    controller1.add(brushMesh.clone())
+    controller2.add(brushMesh.clone())
+
 
 }
 
@@ -156,8 +181,8 @@ function addTextureBuilding() {
     buildingElements.slabs.forEach(mesh => scene.add(mesh))
     buildingElements.envelope.forEach(mesh => scene.add(mesh))
 
-    buildingElements.slabs.forEach(mesh => group.add(mesh))
-    buildingElements.envelope.forEach(mesh => group.add(mesh))
+    //buildingElements.slabs.forEach(mesh => group.add(mesh))
+    //buildingElements.envelope.forEach(mesh => group.add(mesh))
 
 
 }
@@ -201,17 +226,6 @@ function setLight() {
     ambient.add(lensflare)
 }
 
-// function setLight()
-// {       
-//     let sun = Sun(scene)
-//     scene.add(sun.getLight())
-
-//     var ambient = new THREE.AmbientLight(0xffffff, 0.8)
-//     scene.add(ambient)
-
-   
-
-// }
 
 
 function initPlane() {
@@ -251,9 +265,40 @@ function render() {
     intersectObjects(controller1)
     intersectObjects(controller2)
 
+    handleController(controller1)
+    handleController(controller2)
+
     dollyMove()
     renderer.render(scene, camera)
     updateButton()
+}
+
+function handleController(controller)
+{
+    const userData = controller.userData
+    const painter = userData.painter
+
+    const pivot = controller.getObjectByName('pivot')
+
+    if (userData.isSqueezing == true)
+    {
+        const delta = (controller.position.y - userData.positionAtSqeezeStart) * 5
+        const scale = Math.max(0.1, userData.scaleAtSqueezeStart + delta)
+        pivot.scale.setScalar(scale)
+        painter.setSize(scale)
+
+    }
+
+    cursor.setFromMatrixPosition(pivot.matrixWorld)
+
+    if (userData.isSelecting == true) {
+        painter.lineTo(cursor)
+        painter.update()
+    }
+    else
+    {
+        painter.moveTo(cursor)
+    }
 }
 
 function updateButton() {
@@ -564,6 +609,8 @@ function updateView(num) {
 
 
 }
+
+
 
 function dollyMove() {
     var handedness = "unknown"
@@ -898,6 +945,11 @@ function setControls() {
     //    this.remove(this.children[0])
     //})
 
+    controller1.addEventListener('squeezestart', onSqueezeStart)
+    controller1.addEventListener('squeezeend', onSqueezeEnd)
+    controller1.userData.painter = painter1
+
+
     scene.add(controller1)
 
 
@@ -913,6 +965,10 @@ function setControls() {
     //controller2.addEventListener('disconnected', function () {
     //    this.remove(this.children[0])
     //})
+
+    controller2.addEventListener('squeezestart', onSqueezeStart)
+    controller2.addEventListener('squeezeend', onSqueezeEnd)
+    controller2.userData.painter = painter2
 
     scene.add(controller2)
 
@@ -947,10 +1003,26 @@ function setControls() {
 
 }
 
+function onSqueezeStart()
+{
+    this.userData.isSqueezing = true
+    this.userData.positionAtSqeezeStart = this.position.y
+    this.userData.scaleAtSqueezeStart = this.scale.x
+}
+
+function onSqueezeEnd()
+{
+    this.userData.isSqueezing = false
+
+}
+
 function onSelectStart(event) {
     //ui
     selectState = true
     //
+
+    this.userData.isSelecting = true
+
 
     const controller = event.target;
 
@@ -973,6 +1045,8 @@ function onSelectStart(event) {
 
 function onSelectEnd(event) {
     selectState = false
+
+    this.userData.isSelecting = false
 
     const controller = event.target
 
