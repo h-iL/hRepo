@@ -1,5 +1,14 @@
 console.log('sketch.js')
 
+// import * as THREE from './build/three.module.js';
+
+// import * as THREE from './jsm/three.module.js';
+// import { OrbitControls } as THREE.OrbitControls from './jsm/OrbitControls.js';
+import {
+    TransformControls
+} from './jsm/TransformControls.js';
+
+
 import {
     textureBlock,
     updateTexture
@@ -7,7 +16,10 @@ import {
 import Sun from './javascripts/sun/dbf-sun.js'
 import Game from './javascripts/game/game.js'
 import {
-    getRandomName,getRandomAnimal, getRandomColour, colourNameToHex
+    getRandomName,
+    getRandomAnimal,
+    getRandomColour,
+    colourNameToHex
 } from './javascripts/name-generator/name-generator.js'
 
 
@@ -22,6 +34,18 @@ var controls
 var socket
 var player
 var raycaster
+var control
+
+var INTERSECTED2 
+
+var objects = []
+
+
+let INTERSECTED;
+let theta = 0;
+const mouse = new THREE.Vector2();
+const radius = 100;
+
 
 // multi player variables 
 var localPlayer
@@ -172,14 +196,15 @@ function initSocket(socket) {
     })
 
 
-    // socket.on('update global', function(data) {
+    socket.on('updateAsset', function(data) {
 
-    //     globalPlayer.position.x = data.position.x
-    //     globalPlayer.position.y = data.position.y
-    //     globalPlayer.position.z = data.position.z
-    //     globalPlayer.lookAt(0, 0, 0)
+        let o = objects[data.id]
 
-    // })
+        o.position.x = data.x
+        o.position.y = data.y
+        o.position.z = data.z
+
+    })
 
     socket.on('update paper', function(data) {
 
@@ -271,9 +296,78 @@ function updateGlobal() {
 
 }
 
+
+
+function initTHREE() {
+
+    setEnvironmentMap()
+    setRenderer()
+    setScene()
+    setCamera()
+    setControls()
+    setLights()
+    initPlane() // make an invisible plane for shadows 
+    setEvents()
+    addPickingBoxes()
+    setRaycaster()
+
+
+    control = initTransformControl(scene)
+}
+
+function setRaycaster() {
+
+    raycaster = new THREE.Raycaster();
+
+}
+
+
+function setEvents() {
+    // body...
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    window.addEventListener('resize', onWindowResize, false);
+    document.body.onkeyup = function(e) {
+        if (e.keyCode == 32) {
+            //your code
+            console.log('hi')
+            updateTexture({
+                meshes: buildingElements.envelope
+            })
+        }
+    }
+}
+
+
+function setRenderer() {
+
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    //renderer
+    renderer = new THREE.WebGLRenderer();
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // renderer.shadowMap.enabled = true;
+    // renderer.shadowMap.type = THREE.VSMShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+
+}
+
+
+
 function setControls() {
 
+
+    // controls = new OrbitControls(camera, renderer.domElement);
+
+    // orbit.addEventListener('change', render);
+
+
     controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.update();
     controls.enableZoom = true;
     controls.enablePan = true;
     controls.minPolarAngle = Math.PI / 4;
@@ -293,20 +387,24 @@ function addModel() {
     buildingElements.slabs.forEach(mesh => scene.add(mesh))
     buildingElements.envelope.forEach(mesh => scene.add(mesh))
 
+
+        buildingElements.slabs.forEach(mesh => {
+                mesh.sid = objects.length
+            objects.push(mesh)
+
+        })
+    buildingElements.envelope.forEach(mesh => {
+
+        mesh.sid = objects.length
+
+         objects.push(mesh)
+
+
+    })
+
+
 }
 
-function setCubeMap() {
-    //cubemap
-    var path = 'textures/cube/clouds/';
-    var format = '.png';
-
-    var urls = ['textures/cube/clouds/2.png', 'textures/cube/clouds/4.png', 'textures/cube/clouds/top.png', 'textures/cube/clouds/white.png',
-        'textures/cube/clouds/1.png', 'textures/cube/clouds/3.png'
-    ];
-
-    return new THREE.CubeTextureLoader().load(urls);
-
-}
 
 function setCamera() {
 
@@ -318,55 +416,101 @@ function setCamera() {
 }
 
 
-function initTHREE() {
+function setScene() {
 
-    container = document.createElement('div');
-    document.body.appendChild(container);
-
-
-    //renderer
-    renderer = new THREE.WebGLRenderer();
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    // renderer.shadowMap.enabled = true;
-    // renderer.shadowMap.type = THREE.VSMShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
-    renderer.outputEncoding = THREE.sRGBEncoding;
-
-
-    container.appendChild(renderer.domElement);
-
-    reflectionCube = setCubeMap()
- refractionCube = setCubeMap()
 
     scene = new THREE.Scene();
     scene.background = reflectionCube
-
     scene.fog = new THREE.Fog(scene.background, 3500, 15000);
 
 
+}
 
-    setCamera()
-    setControls()
-    setLights()
 
-    // make an invisible plane for shadows 
-    initPlane()
+function setEnvironmentMap() {
 
-    window.addEventListener('resize', onWindowResize, false);
+    reflectionCube = setCubeMap()
+    refractionCube = setCubeMap()
 
-    document.body.onkeyup = function(e) {
-        if (e.keyCode == 32) {
-            //your code
-            console.log('hi')
-            updateTexture({
-                meshes: buildingElements.envelope
-            })
-        }
+    function setCubeMap() {
+        //cubemap
+        var path = 'textures/cube/clouds/';
+        var format = '.png';
+
+        var urls = ['textures/cube/clouds/2.png', 'textures/cube/clouds/4.png', 'textures/cube/clouds/top.png', 'textures/cube/clouds/white.png',
+            'textures/cube/clouds/1.png', 'textures/cube/clouds/3.png'
+        ];
+
+        return new THREE.CubeTextureLoader().load(urls);
+
     }
 
 }
+
+function addPickingBoxes() {
+
+    const geometry = new THREE.BoxBufferGeometry(20, 20, 20);
+
+    for (var x = -2; x < 2; x++) {
+        for (var y = -2; y < 2; y++) {
+            for (var z = -2; z < 2; z++) {
+
+                let red = Math.floor((x + 3) / 6 * 255)
+                let green = Math.floor((y + 3) / 6 * 255)
+                let blue = Math.floor((z + 3) / 6 * 255)
+
+                console.log(red, green, blue)
+
+                // let col = 'rgb('+ red + ',' + greed ',' + blue + ')'
+
+                let col = 'rgb(' + red + ',' + green + ',' + blue + ')'
+
+
+                const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+                    color: col
+                }));
+
+
+                object.position.x = x * 50
+                object.position.y = y * 50
+                object.position.z = z * 50
+
+
+                scene.add(object)
+
+                objects.push(object)
+
+                object.sid = objects.length
+
+            }
+        }
+    }
+
+    // for (let i = 0; i < 100; i++) {
+
+    //     const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+    //         color: Math.random() * 0xffffff
+    //     }));
+
+    //     object.position.x = Math.random() * 200 - 100;
+    //     object.position.y = Math.random() * 200 - 100;
+    //     object.position.z = Math.random() * 200 - 100;
+
+    //     object.rotation.x = Math.random() * 2 * Math.PI;
+    //     object.rotation.y = Math.random() * 2 * Math.PI;
+    //     object.rotation.z = Math.random() * 2 * Math.PI;
+
+    //     object.scale.x = Math.random() + 0.5;
+    //     object.scale.y = Math.random() + 0.5;
+    //     object.scale.z = Math.random() + 0.5;
+
+
+    // }
+
+}
+
+
+
 
 
 function onWindowResize() {
@@ -382,6 +526,10 @@ function animate() {
     // const dt = this.clock.getDelta();  
     let dt = null
     game.updateRemotePlayers(dt)
+
+    selectionHover()
+
+    // raycast()
     requestAnimationFrame(animate);
     render();
 
@@ -462,23 +610,15 @@ function initPaper() {
     var x = document.getElementById("paper");
     x.style.display = "none";
 
-
-
     const geometry = new THREE.PlaneGeometry(512, 512, 1);
     const material = new THREE.MeshBasicMaterial({
         color: 0xffffff
     });
+
     paperMesh = new THREE.Mesh(geometry, material);
     paperMesh.material.needsUpdate = true;
-
     paperMesh.rotateX(-Math.PI / 2)
-    // scene.add(paperMesh)
 
-
-
-    // paperMesh.material.map = new THREE.CanvasTexture(p5js.canvas)
-    // p5js.paint(250, 250)
-    // paperMesh.material.needsUpdate = true
 
 
 
@@ -489,14 +629,49 @@ function initPaper() {
 
 function raycast() {
 
-    const pos = getMousePosition()
-    raycaster.setFromCamera(pos, camera)
 
-    const intersects = raycaster.intersectObject(paperMesh)
+    raycaster.setFromCamera(mouse, camera);
 
-    if (intersects.length) return intersects[0].point;
+    const intersects = raycaster.intersectObjects(scene.children);
+
+
+
+    if (intersects.length > 0) {
+
+        if (INTERSECTED != intersects[0].object) {
+
+            console.log(intersects[0].object)
+
+            // if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+
+
+            INTERSECTED = intersects[0].object;
+
+            scene.remove(INTERSECTED)
+                // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+                // INTERSECTED.material.color =0xff0000;
+
+        }
+
+        // } else {
+
+        //     if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+        //     INTERSECTED = null;
+
+    }
 }
 
+
+function onDocumentMouseMove(event) {
+
+    event.preventDefault();
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+}
 
 
 
@@ -605,55 +780,410 @@ function togglePencil(bool) {
 }
 
 
+
+function selectionHover() {
+
+    raycaster.setFromCamera(mouse, camera);
+
+    // const intersects = raycaster.intersectObjects(scene.children);
+
+    const intersects = raycaster.intersectObjects(objects);
+
+    //
+
+    if (intersects.length > 0) {
+
+        // if new object hovered 
+
+        if (INTERSECTED != intersects[0].object) {
+
+            if (INTERSECTED) {
+
+                // old mesh 
+
+                INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+                control.detach(INTERSECTED)
+
+            }
+
+            // new mesh
+
+            INTERSECTED = intersects[0].object;
+            INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+            INTERSECTED.material.emissive.setHex(0xff0000);
+
+            control.attach(INTERSECTED)
+
+        }
+
+    } else {
+
+        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+        INTERSECTED = null;
+
+    }
+
+}
+
+
+
+
+
+
+function initTransformControl(scene) {
+
+
+    console.log('init TransformControls')
+
+    let newControl = new TransformControls(camera, renderer.domElement);
+    newControl.addEventListener('change', function(event) {
+
+        // console.log('transform changed..', INTERSECTED)
+
+        if (INTERSECTED) {
+
+
+            // console.log(INTERSECTED.sid)
+
+            let hi = objects[INTERSECTED.sid - 1]
+
+            // console.log(hi.position)
+
+        }
+
+
+
+
+        // object.id = objects.length
+
+
+    });
+
+    newControl.addEventListener('objectChange', function(event) {
+
+
+        console.log('objectChange')
+
+        if (control.object){
+
+            let o = control.object 
+
+            let data = {
+
+                id: o.sid,
+                x: o.position.x, 
+                y: o.position.y, 
+                z: o.position.z 
+
+            }
+
+            console.log(data)
+
+            socket.emit('updateAsset', data )
+
+        }
+
+
+
+    });
+
+    newControl.addEventListener('dragging-changed', function(event) {
+
+        controls.enabled = !event.value;
+
+        console.log('dragging-changed!', INTERSECTED)
+
+    });
+
+    scene.add(newControl);
+
+
+
+    return newControl
+}
+
+
+function updateTransformControl(mesh) {
+
+    console.log()
+
+    control.attach(mesh);
+    // control.detach(mesh)
+}
+
+
+
 /*
 
 
 
 
+let container
+let camera, scene, raycaster;
+let renderer, control, orbit;
+
+let INTERSECTED;
+let theta = 0;
+
+const mouse = new THREE.Vector2();
+const radius = 100;
+
+
+let objects = []
+
+init();
+animate();
+
+
+function createMesh() {
+
+    // add a mesh to scene at a random position 
+
+    const geometry = new THREE.BoxBufferGeometry(50, 50, 50);
+
+
+    const mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+        color: Math.random() * 0xffffff
+    }));
 
 
 
+    mesh.position.x = Math.random() * 250 - 500
+    mesh.position.y = Math.random() * 250 - 500
+    mesh.position.z = Math.random() * 250 - 500
 
 
+    return mesh
 
-
+}
 
 function init() {
 
-    elem = 'container'
-    container = document.getElementById(elem)
+    container = document.createElement('div');
+    document.body.appendChild(container);
 
-    scene = new THREE.Scene()
-    camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 1, 10000)
-    camera.position.x = 0
-    camera.position.y = 500
-    camera.position.z = 500
-    this.camera.target = new THREE.Vector3(0, 0, 0)
+    const aspect = window.innerWidth / window.innerHeight;
+
+    camera = new THREE.PerspectiveCamera(50, aspect, 0.01, 30000);
+
+    camera.position.set(500, 250, 500);
+    camera.lookAt(0, 0, 0);
 
 
-    renderer = new THREE.WebGLRenderer({
-        alpha: true,
-        antialias: true
-    })
-    renderer.setPixelRatio(window.devicePixelRatio)
-    renderer.setSize(window.innerWidth, window.innerHeight)
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-    container.appendChild(renderer.domElement)
-    controls = new THREE.OrbitControls(camera, renderer.domElement)
+
+    scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf0f0f0);
+
+    const light = new THREE.DirectionalLight(0xffffff, 1);
+    light.position.set(1, 1, 1).normalize();
+    scene.add(light);
+
+    const geometry = new THREE.BoxBufferGeometry(20, 20, 20);
+
+    for (let i = 0; i < 100; i++) {
+
+
+        let object = createMesh()
+        objects.push(object)
+
+        scene.add(object);
+
+    }
+
+    raycaster = new THREE.Raycaster();
+
+    renderer = new THREE.WebGLRenderer();
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    container.appendChild(renderer.domElement);
+
+
+
+    orbit = new OrbitControls(camera, renderer.domElement);
+    orbit.update();
+    orbit.addEventListener('change', render);
+
+
+    control = initTransformControl(scene)
+    // updateTransformControl(currentObject)
+
+    // scene.add(new THREE.GridHelper(1000, 10, 0x888888, 0x444444));
+
+
+    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    window.addEventListener('mouseup', selectionClick);
+
+    //
+
+    window.addEventListener('resize', onWindowResize, false);
 
 }
 
+
+function selectionClick(){
+
+console.log('hi')
+
+}
+
+// function selectionClick(){
+
+
+//  console.log('selection lcick')
+
+
+//     // raycaster.setFromCamera(mouse, camera);
+
+//     // // const intersects = raycaster.intersectObjects(scene.children);
+
+//     // const intersects = raycaster.intersectObjects(objects);
+
+//     // if (intersects.length > 0) {
+
+//     //     if (INTERSECTED != intersects[0].object) {
+
+//     //         if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+//     //         INTERSECTED = intersects[0].object;
+//     //         INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+//     //         INTERSECTED.material.setHex(0x000000);
+
+//     //     }
+
+//     // } else {
+
+//     //     if (INTERSECTED) INTERSECTED.material.setHex(INTERSECTED.currentHex);
+
+//     //     INTERSECTED = null;
+
+//     // }
+
+// }
+
+function selectionHover(){
+
+    raycaster.setFromCamera(mouse, camera);
+
+    // const intersects = raycaster.intersectObjects(scene.children);
+
+    const intersects = raycaster.intersectObjects(objects);
+
+    //
+
+    if (intersects.length > 0) {
+
+        // if new object hovered 
+
+        if (INTERSECTED != intersects[0].object) {
+
+            if (INTERSECTED) { 
+
+                // old mesh 
+
+                INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+                control.detach(INTERSECTED)
+
+            } 
+
+            // new mesh
+
+            INTERSECTED = intersects[0].object;
+            INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+            INTERSECTED.material.emissive.setHex(0xff0000);
+
+            control.attach(INTERSECTED)
+
+        }
+
+    } else {
+
+        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+        INTERSECTED = null;
+
+    }
+
+}
+
+
+
+
+function initTransformControl(scene) {
+
+    let newControl = new TransformControls(camera, renderer.domElement);
+    newControl.addEventListener('change', render);
+
+    newControl.addEventListener('dragging-changed', function(event) {
+
+        orbit.enabled = !event.value;
+
+    });
+
+    scene.add(newControl);
+
+
+
+    return newControl
+}
+
+
+function updateTransformControl(mesh) {
+
+    console.log()
+
+    control.attach(mesh);
+    // control.detach(mesh)
+}
+
+
+function onWindowResize() {
+
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+}
+
+function onDocumentMouseMove(event) {
+
+    event.preventDefault();
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+}
+
+//
 
 function animate() {
 
-    controls.update()
-    renderer.render(scene, camera)
-    requestAnimationFrame(animate)
+    requestAnimationFrame(animate);
+
+    render();
+
 }
 
+function render() {
 
+    // theta += 0.1;
 
+    // camera.position.x = radius * Math.sin( THREE.MathUtils.degToRad( theta ) );
+    // camera.position.y = radius * Math.sin( THREE.MathUtils.degToRad( theta ) );
+    // camera.position.z = radius * Math.cos( THREE.MathUtils.degToRad( theta ) );
+    // camera.lookAt( scene.position );
+
+    // camera.updateMatrixWorld();
+
+    // find intersections
+
+    selectionHover()
+
+    renderer.render(scene, camera);
+
+}
 
 
 

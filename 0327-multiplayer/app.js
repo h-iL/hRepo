@@ -35,12 +35,12 @@ io.on('connection', function(socket) {
 
     socket.userData = {
 
-    	ready: false, 
+        ready: false,
         x: 0,
         y: 0,
         z: 0,
         colour: null,
-        name: 'anonymous', 
+        name: 'anonymous',
         // heading: 0
     }; //Default values;
 
@@ -57,7 +57,7 @@ io.on('connection', function(socket) {
         connected = connected.filter(id => id != socket.id)
         socket.broadcast.emit('deletePlayer', {
             id: socket.id,
-        
+
         });
 
     });
@@ -68,7 +68,7 @@ io.on('connection', function(socket) {
 
         // console.log(`socket.init ${data.name}`);
         socket.userData.ready = true;
-        socket.userData.name = data.name 
+        socket.userData.name = data.name
         socket.userData.model = data.model;
         socket.userData.colour = data.colour;
         socket.userData.x = data.position.x;
@@ -76,7 +76,7 @@ io.on('connection', function(socket) {
         socket.userData.z = data.position.z;
         socket.userData.action = "Idle";
 
-        
+
     });
 
     socket.on('update', function(data) {
@@ -86,7 +86,19 @@ io.on('connection', function(socket) {
         socket.userData.x = data.position.x;
         socket.userData.y = data.position.y;
         socket.userData.z = data.position.z;
-            // socket.broadcast.emit('update global', player)
+        // socket.broadcast.emit('update global', player)
+
+    })
+
+
+    socket.on('updateAsset', function(data) {
+
+
+        // console.log('update player ' + player.id + ' at position ' + player.position )
+        // socket.userData.x = data.position.x;
+        // socket.userData.y = data.position.y;
+        // socket.userData.z = data.position.z;
+        socket.broadcast.emit('updateAsset', data)
 
     })
 
@@ -170,9 +182,9 @@ setInterval(function() {
                 z: socket.userData.z,
                 colour: socket.userData.colour,
                 name: socket.userData.name
-                // heading: socket.userData.heading,
-                // pb: socket.userData.pb,
-                // action: socket.userData.action
+                    // heading: socket.userData.heading,
+                    // pb: socket.userData.pb,
+                    // action: socket.userData.action
             });
         }
         //   }
@@ -185,7 +197,7 @@ setInterval(function() {
 
     console.log('pack.length', pack.length)
 
-            if (pack.length > 0) io.emit('remoteData', pack);
+    if (pack.length > 0) io.emit('remoteData', pack);
     // console.log('set setInterval')
     // var clients = io.sockets.sockets
 
