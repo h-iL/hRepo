@@ -20,6 +20,12 @@ import {
     colourNameToHex
 } from './javascripts/name-generator/name-generator.js'
 
+import {
+    SelectionBox
+} from './jsm/interactive/SelectionBox.js';
+import {
+    SelectionHelper
+} from './jsm/interactive/SelectionHelper.js';
 
 var container;
 var camera, scene, renderer;
@@ -60,6 +66,9 @@ let game
 let myPlayer
 
 let comments = []
+
+var selectionBox
+var selectionBoxHelper
 
 
 init()
@@ -245,16 +254,16 @@ function initSocket(socket) {
         let o = objects[data.id]
 
         if (o) {
-            
+
             o.position.x = data.x
             o.position.y = data.y
             o.position.z = data.z
-            o.scale.x = data.sx 
+            o.scale.x = data.sx
             o.scale.y = data.sy
             o.scale.z = data.sz
             o.rotation.x = data.rx
             o.rotation.y = data.ry
-            o.rotation.z = data.rz   
+            o.rotation.z = data.rz
 
         }
 
@@ -451,8 +460,11 @@ function setEvents() {
         })
         // rotate
     $('#rotation').click(() => transformControl.setMode('rotate'))
-    $('#translate').click(() => transformControl.setMode('translate'))
+    $('#translation').click(() => transformControl.setMode('translate'))
     $('#scale').click(() => transformControl.setMode('scale'))
+
+
+    initSelectionBoxEvents()
 
     window.addEventListener("dblclick", attachTransform);
     document.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -466,6 +478,78 @@ function setEvents() {
             })
         }
     }
+}
+
+function initSelectionBoxEvents() {
+
+    // dragging = true
+    selectionBox = new SelectionBox(camera, scene);
+    selectionBoxHelper = new SelectionHelper(selectionBox, renderer, 'selectBox');
+
+    document.addEventListener('pointerdown', function(event) {
+
+        if (!event.shiftKey) return
+        controls.enabled = false
+        console.log('pointerdown')
+
+        for (const item of selectionBox.collection) {
+
+            item.material.emissive.set(0xff00ff);
+
+        }
+
+        selectionBox.startPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5);
+
+    });
+
+    document.addEventListener('pointermove', function(event) {
+
+        if (!event.shiftKey) return
+        // console.log('pointermove')
+        if (selectionBoxHelper.isDown) {
+
+            for (let i = 0; i < selectionBox.collection.length; i++) {
+
+                selectionBox.collection[i].material.emissive.set(0xff00ff);
+
+            }
+
+            selectionBox.endPoint.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+
+            const allSelected = selectionBox.select();
+
+      
+
+            for (let i = 0; i < allSelected.length; i++) {
+
+                console.log(allSelected[i])
+
+                allSelected[i].material.emissive.set(0xff00ff);
+
+            }
+
+        }
+
+    });
+
+    document.addEventListener('pointerup', function(event) {
+                if (!event.shiftKey) return
+        controls.enabled = true
+        console.log('pointerup')
+        selectionBox.endPoint.set(
+            (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+
+        const allSelected = selectionBox.select();
+
+        for (let i = 0; i < allSelected.length; i++) {
+
+            allSelected[i].material.emissive.set(0xff00ff);
+
+        }
+
+    });
 }
 
 
@@ -524,12 +608,33 @@ function addModel() {
 
     buildingElements.slabs.forEach(mesh => {
 
+
+        // mesh.geometry.computeBoundingBox()
+        // mesh.geometry.center()
         mesh.sid = objects.length
+
         objects.push(mesh)
 
     })
 
     buildingElements.envelope.forEach(mesh => {
+
+
+        // mesh.geometry.computeBoundingBox()
+
+        // let c1 = getCenterPoint(mesh)
+        // mesh.geometry.computeBoundingBox()
+        // mesh.geometry.center()
+        // let c2 = getCenterPoint(mesh)
+
+        // let dx = c2.x
+        // // console.log(c2.x, c1.x)
+        // // console.log(c2.y, c1.y)
+        // console.log(c2.z, c1.z)
+
+        // mesh.position.x = c1.x - c2.x
+        // mesh.position.y = c1.y - c2.y
+        // mesh.position.z = c1.z - c2.z
 
         mesh.sid = objects.length
         objects.push(mesh)
@@ -539,6 +644,15 @@ function addModel() {
 
 }
 
+
+function getCenterPoint(mesh) {
+    var geometry = mesh.geometry;
+    geometry.computeBoundingBox();
+    var center = new THREE.Vector3();
+    geometry.boundingBox.getCenter(center);
+    mesh.localToWorld(center);
+    return center;
+}
 
 function setCamera() {
 
@@ -903,6 +1017,7 @@ function togglePencil(bool) {
 
 function selectionHover() {
 
+
     raycaster.setFromCamera(mouse, camera);
 
     // const intersects = raycaster.intersectObjects(scene.children);
@@ -922,7 +1037,7 @@ function selectionHover() {
                 // old mesh 
 
                 INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-                transformControl.detach(INTERSECTED)
+                // transformControl.detach(INTERSECTED)
 
             }
 
@@ -932,7 +1047,7 @@ function selectionHover() {
             INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
             INTERSECTED.material.emissive.setHex(0xff0000);
 
-            transformControl.attach(INTERSECTED)
+            // transformControl.attach(INTERSECTED)
 
         }
 
@@ -960,38 +1075,56 @@ function attachTransform() {
 
     //
 
-    if (intersects.length > 0) {
+    console.log(intersects.length)
 
-        console.log('intersects')
+    if (intersects.length > 0) {
 
         // if new object hovered 
 
-        if (INTERSECTED != intersects[0].object) {
+        if (INTERSECTED2 != intersects[0].object) {
 
-            if (INTERSECTED) {
+            console.log('ATTACH')
+
+            if (INTERSECTED2) {
 
                 // old mesh 
 
-                INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-                transformControl.detach(INTERSECTED)
+                // INTERSECTED2.material.emissive.setHex(INTERSECTED2.currentHex);
+                transformControl.detach(INTERSECTED2)
 
             }
 
             // new mesh
 
-            INTERSECTED = intersects[0].object;
-            INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-            INTERSECTED.material.emissive.setHex(0xff0000);
+            INTERSECTED2 = intersects[0].object;
+            // INTERSECTED2.currentHex = INTERSECTED2.material.emissive.getHex();
+            // INTERSECTED2.material.emissive.setHex(0xff0000);
 
-            transformControl.attach(INTERSECTED)
+            console.log('attach intersected', INTERSECTED)
+
+            transformControl.attach(INTERSECTED2)
 
         }
 
     } else {
 
-        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+        console.log('ELSE')
 
-        INTERSECTED = null;
+        if (INTERSECTED2) {
+            // console.log('reset material')
+            // INTERSECTED2.material.emissive.setHex(INTERSECTED2.currentHex);
+
+            // intersects.forEach(obj=> obj.material.emissive.setHex(0xff00ff))
+            //       intersects.forEach(obj=> obj.material.emissive.setHex(0xff0000))
+            // INTERSECTED = null
+            transformControl.detach(INTERSECTED2)
+
+            objects.forEach(obj=>object.material.emissive = null)
+
+        }
+
+
+        INTERSECTED2 = null;
 
     }
 
@@ -1062,6 +1195,6 @@ function updateTransformControl(mesh) {
 
     console.log()
 
-    control.attach(mesh);
+    transformControl.attach(mesh);
     // control.detach(mesh)
 }

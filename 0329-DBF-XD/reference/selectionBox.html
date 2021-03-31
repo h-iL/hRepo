@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+    2 <html lang="en">
+    3     <head>
+    4         <title>three.js webgl - box selection</title>
+    5         <meta charset="utf-8">
+    6         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    7         <link type="text/css" rel="stylesheet" href="main.css">
+    8         <style>
+    9             body {
+   10                 background-color: #f0f0f0;
+   11                 color: #000;
+   12                 touch-action: none;
+   13             }
+   14 
+   15             a {
+   16                 color: #08e;
+   17             }
+   18 
+   19             .selectBox {
+   20                 border: 1px solid #55aaff;
+   21                 background-color: rgba(75, 160, 255, 0.3);
+   22                 position: fixed;
+   23             }
+   24         </style>
+   25     </head>
+   26     <body>
+   27 
+   28         <div id="info">
+   29             <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a> webgl - box selection
+   30         </div>
+   31 
+   32         <script type="module">
+   33 
+   34             import * as THREE from '../build/three.module.js';
+   35 
+   36             import Stats from './jsm/libs/stats.module.js';
+   37 
+   38             import { SelectionBox } from './jsm/interactive/SelectionBox.js';
+   39             import { SelectionHelper } from './jsm/interactive/SelectionHelper.js';
+   40 
+   41             let container, stats;
+   42             let camera, scene, renderer;
+   43 
+   44             init();
+   45             animate();
+   46 
+   47             function init() {
+   48 
+   49                 container = document.createElement( 'div' );
+   50                 document.body.appendChild( container );
+   51 
+   52                 camera = new THREE.PerspectiveCamera( 70, window.innerWidth / window.innerHeight, 1, 5000 );
+   53                 camera.position.z = 1000;
+   54 
+   55                 scene = new THREE.Scene();
+   56                 scene.background = new THREE.Color( 0xf0f0f0 );
+   57 
+   58                 scene.add( new THREE.AmbientLight( 0x505050 ) );
+   59 
+   60                 const light = new THREE.SpotLight( 0xffffff, 1.5 );
+   61                 light.position.set( 0, 500, 2000 );
+   62                 light.angle = Math.PI / 9;
+   63 
+   64                 light.castShadow = true;
+   65                 light.shadow.camera.near = 1000;
+   66                 light.shadow.camera.far = 4000;
+   67                 light.shadow.mapSize.width = 1024;
+   68                 light.shadow.mapSize.height = 1024;
+   69 
+   70                 scene.add( light );
+   71 
+   72                 const geometry = new THREE.BoxGeometry( 20, 20, 20 );
+   73 
+   74                 for ( let i = 0; i < 200; i ++ ) {
+   75 
+   76                     const object = new THREE.Mesh( geometry, new THREE.MeshLambertMaterial( { color: Math.random() * 0xffffff } ) );
+   77 
+   78                     object.position.x = Math.random() * 1600 - 800;
+   79                     object.position.y = Math.random() * 900 - 450;
+   80                     object.position.z = Math.random() * 900 - 500;
+   81 
+   82                     object.rotation.x = Math.random() * 2 * Math.PI;
+   83                     object.rotation.y = Math.random() * 2 * Math.PI;
+   84                     object.rotation.z = Math.random() * 2 * Math.PI;
+   85 
+   86                     object.scale.x = Math.random() * 2 + 1;
+   87                     object.scale.y = Math.random() * 2 + 1;
+   88                     object.scale.z = Math.random() * 2 + 1;
+   89 
+   90                     object.castShadow = true;
+   91                     object.receiveShadow = true;
+   92 
+   93                     scene.add( object );
+   94 
+   95                 }
+   96 
+   97                 renderer = new THREE.WebGLRenderer( { antialias: true } );
+   98                 renderer.setPixelRatio( window.devicePixelRatio );
+   99                 renderer.setSize( window.innerWidth, window.innerHeight );
+  100 
+  101                 renderer.shadowMap.enabled = true;
+  102                 renderer.shadowMap.type = THREE.PCFShadowMap;
+  103 
+  104                 container.appendChild( renderer.domElement );
+  105 
+  106                 stats = new Stats();
+  107                 container.appendChild( stats.dom );
+  108 
+  109                 window.addEventListener( 'resize', onWindowResize );
+  110 
+  111             }
+  112 
+  113             function onWindowResize() {
+  114 
+  115                 camera.aspect = window.innerWidth / window.innerHeight;
+  116                 camera.updateProjectionMatrix();
+  117 
+  118                 renderer.setSize( window.innerWidth, window.innerHeight );
+  119 
+  120             }
+  121 
+  122             //
+  123 
+  124             function animate() {
+  125 
+  126                 requestAnimationFrame( animate );
+  127 
+  128                 render();
+  129                 stats.update();
+  130 
+  131             }
+  132 
+  133             function render() {
+  134 
+  135                 renderer.render( scene, camera );
+  136 
+  137             }
+  138 
+  139             const selectionBox = new SelectionBox( camera, scene );
+  140             const helper = new SelectionHelper( selectionBox, renderer, 'selectBox' );
+  141 
+  142             document.addEventListener( 'pointerdown', function ( event ) {
+  143 
+  144                 for ( const item of selectionBox.collection ) {
+  145 
+  146                     item.material.emissive.set( 0x000000 );
+  147 
+  148                 }
+  149 
+  150                 selectionBox.startPoint.set(
+  151                     ( event.clientX / window.innerWidth ) * 2 - 1,
+  152                     - ( event.clientY / window.innerHeight ) * 2 + 1,
+  153                     0.5 );
+  154 
+  155             } );
+  156 
+  157             document.addEventListener( 'pointermove', function ( event ) {
+  158 
+  159                 if ( helper.isDown ) {
+  160 
+  161                     for ( let i = 0; i < selectionBox.collection.length; i ++ ) {
+  162 
+  163                         selectionBox.collection[ i ].material.emissive.set( 0x000000 );
+  164 
+  165                     }
+  166 
+  167                     selectionBox.endPoint.set(
+  168                         ( event.clientX / window.innerWidth ) * 2 - 1,
+  169                         - ( event.clientY / window.innerHeight ) * 2 + 1,
+  170                         0.5 );
+  171 
+  172                     const allSelected = selectionBox.select();
+  173 
+  174                     for ( let i = 0; i < allSelected.length; i ++ ) {
+  175 
+  176                         allSelected[ i ].material.emissive.set( 0xffffff );
+  177 
+  178                     }
+  179 
+  180                 }
+  181 
+  182             } );
+  183 
+  184             document.addEventListener( 'pointerup', function ( event ) {
+  185 
+  186                 selectionBox.endPoint.set(
+  187                     ( event.clientX / window.innerWidth ) * 2 - 1,
+  188                     - ( event.clientY / window.innerHeight ) * 2 + 1,
+  189                     0.5 );
+  190 
+  191                 const allSelected = selectionBox.select();
+  192 
+  193                 for ( let i = 0; i < allSelected.length; i ++ ) {
+  194 
+  195                     allSelected[ i ].material.emissive.set( 0xffffff );
+  196 
+  197                 }
+  198 
+  199             } );
+  200 
+  201         </script>
+  202 
+  203     </body>
+  204 </html>
