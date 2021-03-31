@@ -52,6 +52,9 @@ let myPlayer
 let comments = []
 
 
+init()
+animate()
+
 
 const geometry = new THREE.ConeGeometry(10, 50, 32);
 const material = new THREE.MeshBasicMaterial({
@@ -61,12 +64,10 @@ const pencil = new THREE.Mesh(geometry, material);
 pencil.rotateX(-Math.PI);
 
 
-init()
-animate()
-
 function init() {
 
-    initTHREE()
+    // initTHREE()
+    initTHREEVR()
 
     game = Game({
 
@@ -286,6 +287,23 @@ function updateGlobal() {
 
 }
 
+
+function initTHREEVR(){
+
+    setEnvironmentMap()
+    setRenderer()
+    setScene()
+    setCamera()
+    setControls()
+    setLights()
+    initPlane() // make an invisible plane for shadows 
+    setEvents()
+    addPickingBoxes()
+    setRaycaster()
+
+    control = initTransformControl(scene)
+
+}
 
 
 function initTHREE() {
