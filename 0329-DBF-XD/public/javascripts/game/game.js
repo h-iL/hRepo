@@ -139,7 +139,7 @@ Game.init = function(params) {
     }
 
     this.tags = []
-
+    this.controls = params.controls 
     this.reflectionCube = params.reflectionCube
     this.refractionCube = params.refractionCube
 

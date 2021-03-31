@@ -79,8 +79,10 @@ io.on('connection', function(socket) {
         console.log(JSON.stringify(globalData,null,4))
 
         for (id in globalData){
-socket.emit('updateAsset',globalData[id])
+
+            socket.emit('updateAsset',globalData[id])
         }
+        
         // globalData.forEach(asset => socket.emit('updateAsset',data))
 
         // socket.emit('updateAllAssets', globalData);

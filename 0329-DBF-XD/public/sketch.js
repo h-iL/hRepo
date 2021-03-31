@@ -1,26 +1,14 @@
 console.log('sketch.js')
 
-// import * as THREE from './build/three.module.js';
 
-// import * as THREE from './jsm/three.module.js';
-// import { OrbitControls } as THREE.OrbitControls from './jsm/OrbitControls.js';
-import {
-    TransformControls
-} from './jsm/TransformControls.js';
+import { TransformControls } from './jsm/TransformControls.js';
+import { textureBlock, updateTexture } from "./javascripts/dbf-proc-tex.js"
 
-
-import {
-    textureBlock,
-    updateTexture
-} from "./javascripts/dbf-proc-tex.js"
 import Sun from './javascripts/sun/dbf-sun.js'
 import Game from './javascripts/game/game.js'
-import {
-    getRandomName,
-    getRandomAnimal,
-    getRandomColour,
-    colourNameToHex
-} from './javascripts/name-generator/name-generator.js'
+import Player from './javascripts/player/socket-player.js'
+
+import { getRandomName, getRandomAnimal, getRandomColour, colourNameToHex } from './javascripts/name-generator/name-generator.js'
 
 
 var container;
@@ -83,14 +71,17 @@ function init() {
     game = Game({
 
         scene: scene,
+        controls: controls, 
         reflectionCube: refractionCube,
         refractionCube: reflectionCube
 
     })
 
+    console.log(game)
+
     addModel()
     initPaper()
-    initPlayer(game)
+    myPlayer = initPlayer(game)
     initChat()
 
 }
@@ -150,6 +141,9 @@ function initChat() {
 
 function initPlayer(game) {
 
+
+    let tempPlayer = Player(game)
+
     let colour = getRandomColour()
     let name = colour + getRandomAnimal()
 
@@ -191,6 +185,8 @@ function initPlayer(game) {
 
 
     })
+
+    return tempPlayer
 
 
 }
@@ -446,6 +442,8 @@ function setControls() {
     controls.maxPolarAngle = Math.PI / 1.5;
     controls.addEventListener('change', updateGlobal)
 
+    return controls 
+
 
 }
 
@@ -537,13 +535,7 @@ function addPickingBoxes() {
                 let red = Math.floor((x + 3) / 6 * 255)
                 let green = Math.floor((y + 3) / 6 * 255)
                 let blue = Math.floor((z + 3) / 6 * 255)
-
-                console.log(red, green, blue)
-
-                // let col = 'rgb('+ red + ',' + greed ',' + blue + ')'
-
                 let col = 'rgb(' + red + ',' + green + ',' + blue + ')'
-
 
                 const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
                     color: col
