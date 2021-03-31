@@ -229,7 +229,9 @@ function initSocket(socket) {
 
 
     socket.on('updateAsset', function(data) {
+
         let o = objects[data.id]
+        
         if (o) {
             o.position.x = data.x
             o.position.y = data.y
@@ -314,7 +316,7 @@ function initTHREE() {
     setCamera()
     setControls()
     setLights()
-    initPlane() // make an invisible plane for shadows 
+   initPlane() // make an invisible plane for shadows 
     setEvents()
     addPickingBoxes()
     setRaycaster()
