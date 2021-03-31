@@ -1,14 +1,24 @@
 console.log('sketch.js')
 
 
-import { TransformControls } from './jsm/TransformControls.js';
-import { textureBlock, updateTexture } from "./javascripts/dbf-proc-tex.js"
+import {
+    TransformControls
+} from './jsm/TransformControls.js';
+import {
+    textureBlock,
+    updateTexture
+} from "./javascripts/dbf-proc-tex.js"
 
 import Sun from './javascripts/sun/dbf-sun.js'
 import Game from './javascripts/game/game.js'
 import Player from './javascripts/player/socket-player.js'
 
-import { getRandomName, getRandomAnimal, getRandomColour, colourNameToHex } from './javascripts/name-generator/name-generator.js'
+import {
+    getRandomName,
+    getRandomAnimal,
+    getRandomColour,
+    colourNameToHex
+} from './javascripts/name-generator/name-generator.js'
 
 
 var container;
@@ -22,13 +32,13 @@ var controls
 var socket
 var player
 var raycaster
-var control
+var transformControl
 
 var INTERSECTED2
 
 var objects = []
 
-
+var elapsedTime = 0
 let INTERSECTED;
 let theta = 0;
 const mouse = new THREE.Vector2();
@@ -56,6 +66,8 @@ init()
 animate()
 
 
+
+
 const geometry = new THREE.ConeGeometry(10, 50, 32);
 const material = new THREE.MeshBasicMaterial({
     color: 0xff00ff
@@ -66,13 +78,13 @@ pencil.rotateX(-Math.PI);
 
 function init() {
 
-    // initTHREE()
-    initTHREEVR()
+    initTHREE()
+        // initTHREEVR()
 
     game = Game({
 
         scene: scene,
-        controls: controls, 
+        controls: controls,
         reflectionCube: refractionCube,
         refractionCube: reflectionCube
 
@@ -95,9 +107,9 @@ function initChat() {
         e.preventDefault();
 
         let data = {}
-        // data.str = player.name + ':' + $('#m').val()
+            // data.str = player.name + ':' + $('#m').val()
 
-                data.str =$('#m').val()
+        data.str = $('#m').val()
 
 
         var v = new THREE.Vector3(); // create once and reuse it!
@@ -143,7 +155,7 @@ function initChat() {
 function initPlayer(game) {
 
 
-    let tempPlayer = Player(game)
+    // let tempPlayer = Player(game)
 
     let colour = getRandomColour()
     let name = colour + getRandomAnimal()
@@ -187,7 +199,7 @@ function initPlayer(game) {
 
     })
 
-    return tempPlayer
+    // return tempPlayer
 
 
 }
@@ -231,15 +243,20 @@ function initSocket(socket) {
     socket.on('updateAsset', function(data) {
 
         let o = objects[data.id]
-        
+
         if (o) {
+            
             o.position.x = data.x
             o.position.y = data.y
             o.position.z = data.z
+            o.scale.x = data.sx 
+            o.scale.y = data.sy
+            o.scale.z = data.sz
+            o.rotation.x = data.rx
+            o.rotation.y = data.ry
+            o.rotation.z = data.rz   
+
         }
-
-
-
 
     })
 
@@ -290,7 +307,7 @@ function updateGlobal() {
 }
 
 
-function initTHREEVR(){
+function initTHREEVR() {
 
     setEnvironmentMap()
     setRenderer()
@@ -303,7 +320,7 @@ function initTHREEVR(){
     addPickingBoxes()
     setRaycaster()
 
-    control = initTransformControl(scene)
+    transformControl = initTransformControl(scene)
 
 }
 
@@ -316,12 +333,14 @@ function initTHREE() {
     setCamera()
     setControls()
     setLights()
-   initPlane() // make an invisible plane for shadows 
+    initPlane() // make an invisible plane for shadows 
     setEvents()
     addPickingBoxes()
     setRaycaster()
 
-    control = initTransformControl(scene)
+
+    transformControl = initTransformControl(scene)
+
 }
 
 
@@ -333,6 +352,12 @@ function setRaycaster() {
 }
 
 function addTextMessage(data) {
+
+
+    setTimeout(() => {
+        document.getElementById('helloSound').play();
+    }, 500)
+
 
     console.log('add text message!', data)
 
@@ -400,7 +425,14 @@ function updateGameElement(o) {
         id: o.sid,
         x: o.position.x,
         y: o.position.y,
-        z: o.position.z
+        z: o.position.z,
+        rx: o.rotation.x,
+        ry: o.rotation.y,
+        rz: o.rotation.z,
+        sx: o.scale.x,
+        sy: o.scale.y,
+        sz: o.scale.z
+
 
     }
 
@@ -410,6 +442,17 @@ function updateGameElement(o) {
 
 function setEvents() {
     // body...
+    $('#toggle-paint').click(() => {
+
+            paintmode = !paintmode
+                // controls.enabled = !paintmode
+                // togglePencil(paintmode)
+                // socket.emit('toggle pencil', paintmode)
+        })
+        // rotate
+    $('#rotation').click(() => transformControl.setMode('rotate'))
+    $('#translate').click(() => transformControl.setMode('translate'))
+    $('#scale').click(() => transformControl.setMode('scale'))
 
     window.addEventListener("dblclick", attachTransform);
     document.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -462,7 +505,7 @@ function setControls() {
     controls.maxPolarAngle = Math.PI / 1.5;
     controls.addEventListener('change', updateGlobal)
 
-    return controls 
+    return controls
 
 
 }
@@ -594,11 +637,24 @@ function onWindowResize() {
 
 }
 
+
+function animateText(dt) {
+
+    elapsedTime += dt
+
+
+    comments.forEach(msg => msg.position.y += Math.sin(elapsedTime) / 50)
+
+}
+
+
+
 function animate() {
 
-    // const dt = this.clock.getDelta();  
-    let dt = null
+    const dt = clock.getDelta();
+
     game.updateRemotePlayers(dt)
+    animateText(dt)
 
     comments.forEach(msg => msg.lookAt(camera.position))
 
@@ -825,24 +881,13 @@ $(document).mousemove(function(e) {
 function paintPaper(stroke) {
 
     p5js.paint(stroke.pos.x + 250, stroke.pos.z + 250, stroke.col[0], stroke.col[1], stroke.col[2])
-
     pencil.position.set(stroke.pos.x, 15, stroke.pos.z)
-
     paperMesh.material.map = new THREE.CanvasTexture(p5js.canvas)
     paperMesh.material.needsUpdate = true
 
 }
 
-$('#toggle-paint').click(() => {
 
-    paintmode = !paintmode
-        // controls.enabled = !paintmode
-    togglePencil(paintmode)
-    socket.emit('toggle pencil', paintmode)
-
-
-
-})
 
 function togglePencil(bool) {
 
@@ -877,7 +922,7 @@ function selectionHover() {
                 // old mesh 
 
                 INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-                control.detach(INTERSECTED)
+                transformControl.detach(INTERSECTED)
 
             }
 
@@ -887,7 +932,7 @@ function selectionHover() {
             INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
             INTERSECTED.material.emissive.setHex(0xff0000);
 
-            control.attach(INTERSECTED)
+            transformControl.attach(INTERSECTED)
 
         }
 
@@ -928,7 +973,7 @@ function attachTransform() {
                 // old mesh 
 
                 INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-                control.detach(INTERSECTED)
+                transformControl.detach(INTERSECTED)
 
             }
 
@@ -938,7 +983,7 @@ function attachTransform() {
             INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
             INTERSECTED.material.emissive.setHex(0xff0000);
 
-            control.attach(INTERSECTED)
+            transformControl.attach(INTERSECTED)
 
         }
 
@@ -968,16 +1013,22 @@ function initTransformControl(scene) {
 
         console.log('objectChange')
 
-        if (control.object) {
+        if (transformControl.object) {
 
-            let o = control.object
+            let o = transformControl.object
 
             let data = {
 
                 id: o.sid,
                 x: o.position.x,
                 y: o.position.y,
-                z: o.position.z
+                z: o.position.z,
+                rx: o.rotation.x,
+                ry: o.rotation.y,
+                rz: o.rotation.z,
+                sx: o.scale.x,
+                sy: o.scale.y,
+                sz: o.scale.z
 
             }
 
@@ -1014,282 +1065,3 @@ function updateTransformControl(mesh) {
     control.attach(mesh);
     // control.detach(mesh)
 }
-
-
-
-/*
-
-
-
-
-let container
-let camera, scene, raycaster;
-let renderer, control, orbit;
-
-let INTERSECTED;
-let theta = 0;
-
-const mouse = new THREE.Vector2();
-const radius = 100;
-
-
-let objects = []
-
-init();
-animate();
-
-
-function createMesh() {
-
-    // add a mesh to scene at a random position 
-
-    const geometry = new THREE.BoxBufferGeometry(50, 50, 50);
-
-
-    const mesh = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
-        color: Math.random() * 0xffffff
-    }));
-
-
-
-    mesh.position.x = Math.random() * 250 - 500
-    mesh.position.y = Math.random() * 250 - 500
-    mesh.position.z = Math.random() * 250 - 500
-
-
-    return mesh
-
-}
-
-function init() {
-
-    container = document.createElement('div');
-    document.body.appendChild(container);
-
-    const aspect = window.innerWidth / window.innerHeight;
-
-    camera = new THREE.PerspectiveCamera(50, aspect, 0.01, 30000);
-
-    camera.position.set(500, 250, 500);
-    camera.lookAt(0, 0, 0);
-
-
-
-
-    scene = new THREE.Scene();
-    scene.background = new THREE.Color(0xf0f0f0);
-
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(1, 1, 1).normalize();
-    scene.add(light);
-
-    const geometry = new THREE.BoxBufferGeometry(20, 20, 20);
-
-    for (let i = 0; i < 100; i++) {
-
-
-        let object = createMesh()
-        objects.push(object)
-
-        scene.add(object);
-
-    }
-
-    raycaster = new THREE.Raycaster();
-
-    renderer = new THREE.WebGLRenderer();
-    renderer.setPixelRatio(window.devicePixelRatio);
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    container.appendChild(renderer.domElement);
-
-
-
-    orbit = new OrbitControls(camera, renderer.domElement);
-    orbit.update();
-    orbit.addEventListener('change', render);
-
-
-    control = initTransformControl(scene)
-    // updateTransformControl(currentObject)
-
-    // scene.add(new THREE.GridHelper(1000, 10, 0x888888, 0x444444));
-
-
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
-    window.addEventListener('mouseup', selectionClick);
-
-    //
-
-    window.addEventListener('resize', onWindowResize, false);
-
-}
-
-
-function selectionClick(){
-
-console.log('hi')
-
-}
-
-// function selectionClick(){
-
-
-//  console.log('selection lcick')
-
-
-//     // raycaster.setFromCamera(mouse, camera);
-
-//     // // const intersects = raycaster.intersectObjects(scene.children);
-
-//     // const intersects = raycaster.intersectObjects(objects);
-
-//     // if (intersects.length > 0) {
-
-//     //     if (INTERSECTED != intersects[0].object) {
-
-//     //         if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-
-//     //         INTERSECTED = intersects[0].object;
-//     //         INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-//     //         INTERSECTED.material.setHex(0x000000);
-
-//     //     }
-
-//     // } else {
-
-//     //     if (INTERSECTED) INTERSECTED.material.setHex(INTERSECTED.currentHex);
-
-//     //     INTERSECTED = null;
-
-//     // }
-
-// }
-
-function selectionHover(){
-
-    raycaster.setFromCamera(mouse, camera);
-
-    // const intersects = raycaster.intersectObjects(scene.children);
-
-    const intersects = raycaster.intersectObjects(objects);
-
-    //
-
-    if (intersects.length > 0) {
-
-        // if new object hovered 
-
-        if (INTERSECTED != intersects[0].object) {
-
-            if (INTERSECTED) { 
-
-                // old mesh 
-
-                INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-                control.detach(INTERSECTED)
-
-            } 
-
-            // new mesh
-
-            INTERSECTED = intersects[0].object;
-            INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-            INTERSECTED.material.emissive.setHex(0xff0000);
-
-            control.attach(INTERSECTED)
-
-        }
-
-    } else {
-
-        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
-
-        INTERSECTED = null;
-
-    }
-
-}
-
-
-
-
-function initTransformControl(scene) {
-
-    let newControl = new TransformControls(camera, renderer.domElement);
-    newControl.addEventListener('change', render);
-
-    newControl.addEventListener('dragging-changed', function(event) {
-
-        orbit.enabled = !event.value;
-
-    });
-
-    scene.add(newControl);
-
-
-
-    return newControl
-}
-
-
-function updateTransformControl(mesh) {
-
-    console.log()
-
-    control.attach(mesh);
-    // control.detach(mesh)
-}
-
-
-function onWindowResize() {
-
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-
-    renderer.setSize(window.innerWidth, window.innerHeight);
-
-}
-
-function onDocumentMouseMove(event) {
-
-    event.preventDefault();
-
-    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-
-}
-
-//
-
-function animate() {
-
-    requestAnimationFrame(animate);
-
-    render();
-
-}
-
-function render() {
-
-    // theta += 0.1;
-
-    // camera.position.x = radius * Math.sin( THREE.MathUtils.degToRad( theta ) );
-    // camera.position.y = radius * Math.sin( THREE.MathUtils.degToRad( theta ) );
-    // camera.position.z = radius * Math.cos( THREE.MathUtils.degToRad( theta ) );
-    // camera.lookAt( scene.position );
-
-    // camera.updateMatrixWorld();
-
-    // find intersections
-
-    selectionHover()
-
-    renderer.render(scene, camera);
-
-}
-
-
-
-
-
-*/

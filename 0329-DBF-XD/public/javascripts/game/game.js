@@ -28,6 +28,7 @@ Game.prototype = {
             var r = $('<input type="button"  id="' + id + '"value="' + name + '"/>');
 
             let value = colour
+            r.addClass('user-tag')
             r.css('background-color', value);
             r.css('font-family', 'Nunito', 'sans-serif');
 
@@ -53,6 +54,7 @@ Game.prototype = {
 
         let remoteList = this.remoteData.filter(player => player.id != this.player.id)
 
+    let newPlayerSound = false;
 
 
         for (var i = 0; i < remoteList.length; i++) {
@@ -61,7 +63,10 @@ Game.prototype = {
 
             if (this.remotePlayers[tempData.id] !== undefined) {
 
+
                 // console.log('update player')
+                // var audio = new Audio('../../assets/sounds/hello.mp3');
+                // audio.play()
 
                 let mesh = this.remotePlayers[tempData.id]
 
@@ -76,6 +81,7 @@ Game.prototype = {
 
                 if (!this.avatar) return
 
+                newPlayerSound = true; 
                 console.log('colour:', tempData.colour)
 
 
@@ -116,11 +122,24 @@ Game.prototype = {
         }
 
         // this.remotePlayers.forEach(player => this.updatePlayer(player))
+        try{
+                    if (newPlayerSound){
+
+            setTimeout(() => {
+  document.getElementById('msgSound').play();
+}, 500)
+}
+
+        }catch(err){
+
+
+
+        }
+
 
 
 
         // console.log('remote players', this.remotePlayers.length)
-
 
 
     },
