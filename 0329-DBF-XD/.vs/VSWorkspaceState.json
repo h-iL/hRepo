@@ -1,8 +1,10 @@
 {
   "ExpandedNodes": [
     "",
-    "\\public"
+    "\\public",
+    "\\public\\javascripts",
+    "\\public\\javascripts\\player"
   ],
-  "SelectedNode": "\\public\\sketch.js",
+  "SelectedNode": "\\public\\javascripts\\player\\socket-player.js",
   "PreviewInSolutionExplorer": false
 }

@@ -9,7 +9,7 @@ import Game from './javascripts/game/game.js'
 import Player from './javascripts/player/socket-player.js'
 
 import { getRandomName, getRandomAnimal, getRandomColour, colourNameToHex } from './javascripts/name-generator/name-generator.js'
-
+import { VRButton } from './jsm/webxr/VRButton.js'
 
 var container;
 var camera, scene, renderer;
@@ -53,7 +53,7 @@ let comments = []
 
 
 init()
-animate()
+animateVR()
 
 
 const geometry = new THREE.ConeGeometry(10, 50, 32);
@@ -291,7 +291,7 @@ function updateGlobal() {
 function initTHREEVR(){
 
     setEnvironmentMap()
-    setRenderer()
+    setRendererVR()
     setScene()
     setCamera()
     setControls()
@@ -424,6 +424,8 @@ function setEvents() {
 }
 
 
+
+
 function setRenderer() {
 
     container = document.createElement('div');
@@ -440,6 +442,28 @@ function setRenderer() {
     container.appendChild(renderer.domElement);
 
 
+}
+
+function setRendererVR()
+{
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    //renderer
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // renderer.shadowMap.enabled = true;
+    // renderer.shadowMap.type = THREE.VSMShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    renderer.xr.enabled = true
+    renderer.xr.setFramebufferScaleFactor(2.0)
+
+
+    container.appendChild(renderer.domElement);
+    container.appendChild(VRButton.createButton(renderer));
 }
 
 
@@ -536,6 +560,8 @@ function setEnvironmentMap() {
 
 }
 
+
+
 function addPickingBoxes() {
 
     let w = 5
@@ -608,12 +634,31 @@ function animate() {
 
 }
 
+function animateVR() {
+
+    // const dt = this.clock.getDelta();  
+    let dt = null
+    game.updateRemotePlayers(dt)
+
+    comments.forEach(msg => msg.lookAt(camera.position))
+
+    selectionHover()
+
+    // raycast()
+    requestAnimationFrame(animate);
+    renderer.setAnimationLoop(render)
+    //render();
+
+}
+
 function render() {
     var delta = clock.getDelta();
     // controls.update(delta);
     renderer.render(scene, camera);
 
 }
+
+
 
 function initPlane() {
 
