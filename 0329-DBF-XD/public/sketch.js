@@ -69,6 +69,7 @@ let comments = []
 
 var selectionBox
 var selectionBoxHelper
+var helper
 
 
 init()
@@ -484,17 +485,18 @@ function initSelectionBoxEvents() {
 
     // dragging = true
     selectionBox = new SelectionBox(camera, scene);
-    selectionBoxHelper = new SelectionHelper(selectionBox, renderer, 'selectBox');
+    helper = new SelectionHelper(selectionBox, renderer, 'selectBox');
+
+
 
     document.addEventListener('pointerdown', function(event) {
 
-        if (!event.shiftKey) return
-        controls.enabled = false
-        console.log('pointerdown')
+        controls.enabled = false 
+        // if(event.shiftkey) return
 
-        for (const item of selectionBox.collection) {
+        for (var item of selectionBox.collection) {
 
-            item.material.emissive.set(0xff00ff);
+            item.material.emissive.set(0x000000);
 
         }
 
@@ -506,27 +508,23 @@ function initSelectionBoxEvents() {
 
     document.addEventListener('pointermove', function(event) {
 
-        if (!event.shiftKey) return
-        // console.log('pointermove')
-        if (selectionBoxHelper.isDown) {
+        if (helper.isDown) {
 
-            for (let i = 0; i < selectionBox.collection.length; i++) {
+            for (var i = 0; i < selectionBox.collection.length; i++) {
 
-                selectionBox.collection[i].material.emissive.set(0xff00ff);
+                selectionBox.collection[i].material.emissive.set(0x000000);
 
             }
 
-            selectionBox.endPoint.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+            selectionBox.endPoint.set(
+                (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1,
+                0.5);
 
-            const allSelected = selectionBox.select();
+            var allSelected = selectionBox.select();
 
-      
+            for (var i = 0; i < allSelected.length; i++) {
 
-            for (let i = 0; i < allSelected.length; i++) {
-
-                console.log(allSelected[i])
-
-                allSelected[i].material.emissive.set(0xff00ff);
+                allSelected[i].material.emissive.set(0xffffff);
 
             }
 
@@ -535,19 +533,20 @@ function initSelectionBoxEvents() {
     });
 
     document.addEventListener('pointerup', function(event) {
-                if (!event.shiftKey) return
-        controls.enabled = true
-        console.log('pointerup')
+
         selectionBox.endPoint.set(
-            (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5);
+            (event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1,
+            0.5);
 
-        const allSelected = selectionBox.select();
+        var allSelected = selectionBox.select();
 
-        for (let i = 0; i < allSelected.length; i++) {
+        for (var i = 0; i < allSelected.length; i++) {
 
-            allSelected[i].material.emissive.set(0xff00ff);
+            allSelected[i].material.emissive.set(0xffffff);
 
         }
+
+        helper = null
 
     });
 }
@@ -772,7 +771,7 @@ function animate() {
 
     comments.forEach(msg => msg.lookAt(camera.position))
 
-    selectionHover()
+    // selectionHover()
 
     // raycast()
     requestAnimationFrame(animate);
@@ -1119,7 +1118,7 @@ function attachTransform() {
             // INTERSECTED = null
             transformControl.detach(INTERSECTED2)
 
-            objects.forEach(obj=>object.material.emissive = null)
+            objects.forEach(obj => object.material.emissive = null)
 
         }
 
