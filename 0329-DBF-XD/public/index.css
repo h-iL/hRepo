@@ -34,13 +34,13 @@ p {
 }
 
 /*#viewport{
-	height:100vh;
+    height:100vh;
 }*/
 
 /*body {
 
-	font-family: 'Nunito', sans-serif;
-	overflow: hidden;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
 }
 */
 /** {
@@ -51,10 +51,11 @@ p {
 
 /*body { font: 13px Helvetica, Arial; }*/
 form {
-    /*background: #000;*/
+    /*background: #999;*/
     padding: 10px;
+    padding-right: 10px;
     position: fixed;
-    bottom: 10px;
+    bottom: 0px;
     width: 50%;
     align-self: center;
 }
@@ -62,11 +63,11 @@ form {
 form input {
 
     display: block;
-    /*background: #000;*/
+    /*background: #d3d3d3;*/
     border: 0;
     padding: 10px;
-    width: 100%;
-    /*outline: 2px dashed grey;*/
+    width: 95%;
+    outline: 2px dashed grey;
     /*margin-left: .5%;*/
     /*margin-right: .5%;*/
     margin-bottom: 1%;
@@ -76,11 +77,25 @@ form input {
 form button {
 
     font-family: 'Nunito', sans-serif;
-    width: 15%;
+    /*width: 5vw;*/
+    /*height: 2vw;*/
     border: none;
-    margin: 0.25%;
-    padding: 10px;
+    /*margin: 0.5%;*/
+    /*margin-bottom: 0.50%*/
+    padding: 5px;
 
+}
+
+.palette {
+        outline: none;
+    display: inline;
+    font-family: 'Nunito', sans-serif;
+    width: 2vw;
+    height: 2vw;
+    padding: 0px;
+    border: none;
+    margin: 0.1%;
+    /*padding: 5px;*/
 }
 
 button {
@@ -88,7 +103,9 @@ button {
     /*background: #2fc2a1ff;*/
     /*background: light-grey;*/
     border: none;
-    margin: 10px;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-bottom: 1%;
     padding: 1%;
 }
 
@@ -113,15 +130,15 @@ button {
 
 /*button{
 
-	font-family: 'Nunito', sans-serif;
+    font-family: 'Nunito', sans-serif;
 }
 
 
 .button1 {
 
-	position: absolute;
-	right: 50px;
-	bottom: 50px;"
+    position: absolute;
+    right: 50px;
+    bottom: 50px;"
 
 }
 */

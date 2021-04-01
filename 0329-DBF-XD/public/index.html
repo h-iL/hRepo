@@ -40,22 +40,38 @@
         <!-- <button class="button">This is your button</button> -->
     </div>
     <div id="paper"></div>
-    <script type="module" src="sketch.js"></script>
     <ul id="messages"></ul>
     <div align="center">
         <div style="width:66%;">
             <form action="">
                 <input id="m" autocomplete="off" />
-                <div align="left">
-                    <button> Send </button>
-                    <button id="toggle-paint" class="button1"> D </button>
+                <div align="left" id="tool-bar">
+                    <button> Msg </button>
+                    <button id="toggle-paint" class="button1"> Draw </button>
                     <button id="translation" class="button1"> Translate </button>
                     <button id="rotation" class="button1"> Rotate </button>
                     <button id="scale" class="button1"> Scale </button>
+                    <br>
                 </div>
             </form>
         </div>
     </div>
+    <script type="text/javascript">
+    let hex = ['#264653ff', '#0e5d99ff', '#118ab2ff', '#2a9d8fff', '#2fc2a1ff', '#e76f51ff', '#F4A261', '#e9c46aff', '#F8EE84']
+
+    let num = 3
+
+    for (var i = 0; i < hex.length; i++) {
+
+        var b = $('<input type="button" value=" " />');
+        b.addClass('palette')
+        b.css('background-color', hex[i]);
+        b.appendTo($("#tool-bar"));
+
+    }
+
+    </script>
+    <script type="module" src="sketch.js"></script>
 </body>
 
 </html>

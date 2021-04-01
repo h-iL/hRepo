@@ -465,7 +465,7 @@ function setEvents() {
     $('#scale').click(() => transformControl.setMode('scale'))
 
 
-    initSelectionBoxEvents()
+    // initSelectionBoxEvents()
 
     window.addEventListener("dblclick", attachTransform);
     document.addEventListener('mousemove', onDocumentMouseMove, false);
@@ -696,21 +696,37 @@ function setEnvironmentMap() {
 
 function addPickingBoxes() {
 
+    for (var x = 0; x < 4; x++){
+        for (var z = 0; z < 4; z++){
+
+            let cx = x*50
+            let cz = z*50 
+
+            addTower(cx,0,cz,3+x/2,x+z+3,3)
+
+
+        }
+    }
+
+}
+
+function addTower(cx,cy,cz,nx,ny,nz) {
+
     let w = 5
     let h = 5
     let d = 5
 
-    const geometry = new THREE.BoxBufferGeometry(w, h, d);
+    const geometry = new THREE.BoxBufferGeometry(5, 5, 5);
 
-    for (var x = -2; x < 2; x++) {
+    for (var x = -nx/2; x < nx/2; x++) {
 
-        for (var y = 0; y < 5; y++) {
+        for (var y = 0; y < ny; y++) {
 
-            for (var z = -2; z < 2; z++) {
+            for (var z = -nz/2; z < nz/2; z++) {
 
-                let red = Math.floor((x + 3) / 6 * 255)
-                let green = Math.floor((y + 3) / 6 * 255)
-                let blue = Math.floor((z + 3) / 6 * 255)
+                let red = Math.floor((x+nx/2) / (nx-1) * 255)
+                let green = Math.floor(y / (ny-1) * 255)
+                let blue = Math.floor((z+nz/2) / (nz-1) * 255)
                 let col = 'rgb(' + red + ',' + green + ',' + blue + ')'
 
                 const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
@@ -718,9 +734,9 @@ function addPickingBoxes() {
                 }));
 
 
-                object.position.x = x * w + 100
-                object.position.y = y * h
-                object.position.z = z * d
+                object.position.x = x * w + 100 + cx 
+                object.position.y = y * h + cy 
+                object.position.z = z * d + cz
                 object.castShadow = true;
                 object.receiveShadow = true;
 
@@ -771,7 +787,7 @@ function animate() {
 
     comments.forEach(msg => msg.lookAt(camera.position))
 
-    // selectionHover()
+    selectionHover()
 
     // raycast()
     requestAnimationFrame(animate);
