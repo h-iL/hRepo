@@ -20,11 +20,14 @@ var reflectionCube
 var refractionCube
 var buildingElements = null
 var clock = new THREE.Clock();
+
+
 var controls
+
 var socket
 var player
 var raycaster
-var control
+var control, dragControl 
 
 var INTERSECTED2
 
@@ -74,8 +77,8 @@ pencil.rotateX(-Math.PI);
 
 function init() {
 
-    // initTHREE()
-    initTHREEVR()
+    initTHREE()
+    // initTHREEVR()
 
     game = Game({
 
@@ -179,6 +182,8 @@ function dragCtrl(scene)
     scene.add(group)
 
     dragControls = new DragControls([...objects], camera, renderer.domElement)
+
+    // dragControls = new DragControls(group, camera, renderer.domElement)
     dragControls.addEventListener('drag', render)
 
     document.addEventListener('click', onClick)
@@ -222,7 +227,7 @@ function dragCtrl(scene)
     });
 
 
-    scene.add(dragControls)
+    // scene.add(dragControls)
 
     return dragControls
 
@@ -469,6 +474,9 @@ function initTHREE() {
     setRaycaster()
 
     control = initTransformControl(scene)
+
+    dragControl= dragCtrl(scene)
+
 }
 
 
@@ -619,18 +627,13 @@ function setRendererVR()
 
 function setControls() {
 
-
-    // controls = new OrbitControls(camera, renderer.domElement);
-
-    // orbit.addEventListener('change', render);
-
    
 
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.update();
-    controls.enableZoom = true;
-    controls.enablePan = true;
+    // controls.enableZoom = true;
+    // controls.enablePan = true;
     controls.minPolarAngle = Math.PI / 4;
     controls.maxPolarAngle = Math.PI / 1.5;
     controls.addEventListener('change', updateGlobal)
