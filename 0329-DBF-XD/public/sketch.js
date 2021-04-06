@@ -11,6 +11,8 @@ import Player from './javascripts/player/socket-player.js'
 import { getRandomName, getRandomAnimal, getRandomColour, colourNameToHex } from './javascripts/name-generator/name-generator.js'
 import { VRButton } from './jsm/webxr/VRButton.js'
 
+import { DragControls} from './jsm/DragControls.js'
+
 var container;
 var camera, scene, renderer;
 var pointLight;
@@ -51,6 +53,12 @@ let myPlayer
 
 let comments = []
 
+//drag controls
+let dragControls
+let enableSelection = false
+let group
+
+
 
 init()
 animateVR()
@@ -84,6 +92,9 @@ function init() {
     initPaper()
     myPlayer = initPlayer(game)
     initChat()
+
+    uiActions()
+
 
 }
 
@@ -138,6 +149,140 @@ function initChat() {
 
 }
 
+function uiActions()
+{
+
+    //$("#something").click(function () {
+    //    alert('it is clicked')
+    //    $(this).hide(300).show(1000)
+    //})
+
+    //$("#newButton").click(function () {
+    //    $(this).hide(500).show(500)
+    //    console.log('it is clicked')
+    //})
+
+    $("#burgerMenu").click(function () {
+        $("#popupMenu").show(500)
+        $("#secondMenu").show(500)
+    })
+
+    $(".close").click(function () {
+        $("#popupMenu").hide(500)
+        $("#secondMenu").hide(500)
+    })
+}
+
+function dragCtrl(scene)
+{
+    group = new THREE.Group()
+    scene.add(group)
+
+    dragControls = new DragControls([...objects], camera, renderer.domElement)
+    dragControls.addEventListener('drag', render)
+
+    document.addEventListener('click', onClick)
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+
+
+
+    //let transformCtrl = new TransformControls(camera, renderer.domElement)
+    
+    dragControls.addEventListener('objectChange', function (event) {
+
+        console.log('objectChange')
+
+        if (dragControls.object) {
+
+            let o = dragControls.object
+
+            let data = {
+
+                id: o.sid,
+                x: o.position.x,
+                y: o.position.y,
+                z: o.position.z
+
+            }
+
+            console.log(data)
+
+            socket.emit('updateAsset', data)
+        }
+
+    });
+
+    dragControls.addEventListener('dragging-changed', function (event) {
+
+        dragControls.enabled = !event.value;
+
+        console.log('dragging-changed!', INTERSECTED)
+
+    });
+
+    scene.add(dragControls)
+
+    return dragControls
+
+}
+
+function onKeyDown()
+{
+    enableSelection = (event.keyCode === 16 ) ? true : false
+
+}
+
+function onKeyUp()
+{
+    enableSelection = false
+
+}
+
+function onClick(event)
+{
+    console.log('object selected for drag!')
+    event.preventDefault()
+
+    if (enableSelection === true)
+    {
+        const draggableObjects = dragControls.getObjects()
+        draggableObjects.length = 0
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+        raycaster.setFromCamera(mouse, camera)
+        const intersections = raycaster.intersectObjects(objects,true)
+
+
+        if (intersections.length > 0)
+        {
+            const object = intersections[0].object
+
+            if (group.children.includes(object) === true) {
+                object.material.emissive.set(0x000000)
+                scene.attach(object)
+            }
+            else
+            {
+                object.material.emissive.set(0xaaaaaa)
+                group.attach(object)
+            }
+
+            dragControls.transformGroup = true
+            draggableObjects.push(group)
+        }
+
+        if (group.children.length === 0)
+        {
+            dragControls.transformGroup = false
+            draggableObjects.push(...objects)
+        }
+
+    }
+}
+
 
 
 function initPlayer(game) {
@@ -175,8 +320,8 @@ function initPlayer(game) {
 
     const objLoader = new THREE.OBJLoader();
 
-    objLoader.setPath('obj/walt/')
-    objLoader.load('WaltHead.obj', function(object) {
+    objLoader.setPath('obj/vrhead/')
+    objLoader.load('vrhead.obj', function(object) {
 
         game.avatar = object.children[0];
         game.avatar.scale.multiplyScalar(1);
@@ -301,7 +446,9 @@ function initTHREEVR(){
     addPickingBoxes()
     setRaycaster()
 
-    control = initTransformControl(scene)
+
+    control= dragCtrl(scene)
+    //control = initTransformControl(scene)
 
 }
 
@@ -475,6 +622,8 @@ function setControls() {
 
     // orbit.addEventListener('change', render);
 
+   
+
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.update();
@@ -485,8 +634,32 @@ function setControls() {
     controls.addEventListener('change', updateGlobal)
 
     return controls 
+}
+
+function setControlsVR() {
 
 
+    // controls = new OrbitControls(camera, renderer.domElement);
+
+    // orbit.addEventListener('change', render);
+
+    const session = renderer.xr.getSession()
+
+    if (session)
+    {
+        controls = new THREE.OrbitControls(renderer.xr.getCamera(camera), container);
+    }
+    
+
+    controls = new THREE.OrbitControls(camera, container);
+    controls.update();
+    controls.enableZoom = true;
+    controls.enablePan = true;
+    controls.minPolarAngle = Math.PI / 4;
+    controls.maxPolarAngle = Math.PI / 1.5;
+    controls.addEventListener('change', updateGlobal)
+
+    return controls
 }
 
 function addModel() {
@@ -642,7 +815,7 @@ function animateVR() {
 
     comments.forEach(msg => msg.lookAt(camera.position))
 
-    selectionHover()
+    //selectionHover()
 
     // raycast()
     requestAnimationFrame(animate);

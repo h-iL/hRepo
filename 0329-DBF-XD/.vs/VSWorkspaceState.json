@@ -3,7 +3,10 @@
     "",
     "\\public",
     "\\public\\javascripts",
-    "\\public\\javascripts\\player"
+    "\\public\\javascripts\\game",
+    "\\public\\javascripts\\player",
+    "\\public\\jsm",
+    "\\public\\jsm\\webxr"
   ],
   "SelectedNode": "\\public\\javascripts\\player\\socket-player.js",
   "PreviewInSolutionExplorer": false
