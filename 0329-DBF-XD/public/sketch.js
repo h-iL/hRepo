@@ -185,41 +185,42 @@ function dragCtrl(scene)
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
 
-
-
     //let transformCtrl = new TransformControls(camera, renderer.domElement)
     
-    dragControls.addEventListener('objectChange', function (event) {
+    dragControls.addEventListener('drag', function (event) {
 
-        console.log('objectChange')
+        console.log('objectDrag')
 
-        if (dragControls.object) {
+        if (control.object)
+        {
+            group.children.forEach(g => {
 
-            let o = dragControls.object
+                let o = g
 
-            let data = {
+                let data = {
+                    id: o.sid,
+                    x: o.position.x,
+                    y: o.position.y,
+                    z: o.position.z
+                }
 
-                id: o.sid,
-                x: o.position.x,
-                y: o.position.y,
-                z: o.position.z
+                console.log(data)
 
-            }
+                socket.emit('updateAsset', data)
 
-            console.log(data)
-
-            socket.emit('updateAsset', data)
+            })
         }
 
     });
 
-    dragControls.addEventListener('dragging-changed', function (event) {
+    dragControls.addEventListener('hoveron', function (event) {
 
-        dragControls.enabled = !event.value;
+        controls.enabled = !event.value;
 
         console.log('dragging-changed!', INTERSECTED)
 
     });
+
 
     scene.add(dragControls)
 
@@ -259,6 +260,7 @@ function onClick(event)
         if (intersections.length > 0)
         {
             const object = intersections[0].object
+
 
             if (group.children.includes(object) === true) {
                 object.material.emissive.set(0x000000)
@@ -448,7 +450,7 @@ function initTHREEVR(){
 
 
     control= dragCtrl(scene)
-    //control = initTransformControl(scene)
+    control = initTransformControl(scene)
 
 }
 
@@ -1169,18 +1171,13 @@ function attachTransform() {
 }
 
 
-
-
-
 function initTransformControl(scene) {
-
 
     console.log('init TransformControls')
 
     let newControl = new TransformControls(camera, renderer.domElement);
 
     newControl.addEventListener('objectChange', function(event) {
-
 
         console.log('objectChange')
 
@@ -1194,16 +1191,12 @@ function initTransformControl(scene) {
                 x: o.position.x,
                 y: o.position.y,
                 z: o.position.z
-
             }
 
             console.log(data)
 
             socket.emit('updateAsset', data)
-
         }
-
-
 
     });
 
