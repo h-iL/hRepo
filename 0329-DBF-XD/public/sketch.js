@@ -12,6 +12,7 @@ import { getRandomName, getRandomAnimal, getRandomColour, colourNameToHex } from
 import { VRButton } from './jsm/webxr/VRButton.js'
 
 import { DragControls} from './jsm/DragControls.js'
+import { OrbitControls } from './jsm/OrbitControls.js';
 
 var container;
 var camera, scene, renderer;
@@ -27,7 +28,9 @@ var controls
 var socket
 var player
 var raycaster
-var control, dragControl 
+var control
+
+//var dragControl 
 
 var INTERSECTED2
 
@@ -77,8 +80,8 @@ pencil.rotateX(-Math.PI);
 
 function init() {
 
-    initTHREE()
-    // initTHREEVR()
+    //initTHREE()
+    initTHREEVR()
 
     game = Game({
 
@@ -190,7 +193,6 @@ function dragCtrl(scene)
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
 
-    //let transformCtrl = new TransformControls(camera, renderer.domElement)
     
     dragControls.addEventListener('drag', function (event) {
 
@@ -233,9 +235,62 @@ function dragCtrl(scene)
 
 }
 
+function multipleControls()
+{
+    const axesHelper = new THREE.AxesHelper(5)
+
+    scene.add(axesHelper)
+
+    renderer.domElement.ondragstart = function (event) {
+        event.preventDefault()
+        return false
+    }
+
+
+    //const geometry = new THREE.BoxGeometry(1, 1, 1)
+    //const material  = new THREE.MeshNormalMaterial({ transparent: true })
+
+    //const cube=new THREE.Mesh(geometry, material)
+    //scene.add(cube)
+
+    const dragControls = new DragControls([...objects], camera, renderer.domElement)
+
+    dragControls.addEventListener("hoveron", function () {
+        controls.enabled = false
+    })
+
+    dragControls.addEventListener("hoveroff", function () {
+        controls.enabled=true
+    })
+
+    dragControls.addEventListener('dragstart', function (event) {
+        event.object.material.opacity=0.33
+    })
+
+    dragControls.addEventListener('dragend', function (event) {
+        event.object.material.opacity=1
+    })
+
+
+
+    //let transformControls = new TransformControls(camera, renderer.domElement)
+    //transformControls.attach(scene.children)
+    //transformControls.setMode("rotate")
+    //scene.add(transformControls)
+
+    //transformControls.addEventListener('dragging-changed', function (event) {
+    //    orbitControls.enabled = !event.value
+    //    dragControls.enabled= !event.value
+    //})
+
+
+
+
+}
+
 function onKeyDown()
 {
-    enableSelection = (event.keyCode === 16 ) ? true : false
+    enableSelection = (event.keyCode === 16 && event.keyCode===19) ? true : false
 
 }
 
@@ -454,8 +509,22 @@ function initTHREEVR(){
     setRaycaster()
 
 
-    control= dragCtrl(scene)
-    control = initTransformControl(scene)
+
+    //document.body.onkeyup = function (e)
+    //{
+    //    if (event.keyCode === 19)
+    //        console.log(event.keyCode)
+    //    dragControl = !dragCtrl(scene)
+    //    //controls.enabled = !event.value;
+    //}
+
+
+
+    //control = initTransformControl(scene)
+
+
+    multipleControls()
+
 
 }
 
@@ -1099,7 +1168,6 @@ function selectionHover() {
 
                 INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
                 control.detach(INTERSECTED)
-
             }
 
             // new mesh
