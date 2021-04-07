@@ -2,7 +2,7 @@ module.exports = {
   docs: [
     {
       type: 'category',
-      label: 'Docusaurus Tutorial',
+      label: 'Getting Started!',
       items: [
         'getting-started',
         'create-a-page',
@@ -10,7 +10,18 @@ module.exports = {
         'create-a-blog-post',
         'markdown-features',
         'thank-you',
-      ],
-    },
+          ],
+
+        
+
+
+
+
+
+
+        },
+
+     
+
   ],
 };

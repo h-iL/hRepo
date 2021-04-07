@@ -1,7 +1,7 @@
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
 module.exports = {
-  title: 'My Site',
-  tagline: 'The tagline of my site',
+  title: 'Welcome to DBF Resource Center!',
+    tagline: 'Accelerating the digitization of Planning, Design and Construction for better cities',
   url: 'https://your-docusaurus-test-site.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
@@ -11,7 +11,7 @@ module.exports = {
   projectName: 'docusaurus', // Usually your repo name.
   themeConfig: {
     navbar: {
-      title: 'My Site',
+      title: 'DBF Resource Center',
       logo: {
         alt: 'My Site Logo',
         src: 'img/DBF_Logo_square.png',
@@ -26,7 +26,7 @@ module.exports = {
         {to: 'blog', label: 'Blog', position: 'left'},
         {
           href: 'https://github.com/facebook/docusaurus',
-          label: 'GitHub',
+          label: 'Dark Mode',
           position: 'right',
         },
       ],
