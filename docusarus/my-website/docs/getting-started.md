@@ -1,28 +1,22 @@
----
-title: Getting Started
+﻿---
+title: 1. Mark Your Site
 slug: /
 ---
 
-## Step 1: Generate a new Docusaurus site
+ 
 
-If you haven't already, generate a new Docusaurus site using the classic template:
+[View our video tutorial here!](https://www.youtube.com/watch?v=tf2Na0OvCrA)
 
-```shell
-npx @docusaurus/init@latest init my-website classic
-```
+## Mark your site, anywhere in the world.
 
-## Step 2: Start your Docusaurus site
+Search for and trace out your site on our map. Leave it to our tool to hunt contextual and environmental data for your site and set up a 3D environment for you to generate design options.
 
-Run the development server in the newly created `my-website` folder:
+### Collect data from APIs such as OSM and Google Places. Have your own data? Load it on our tool.
 
-```shell
-cd my-website
+> DBF tool collects data about neighbouring buildings, businesses, roads and transport networks, terrain and so on, and populates this data in a user-friendly 3D scene for you to visualize and play with.
 
-npx docusaurus start
-```
+Use the polygon tool or the rectangle tool to demarcate your site. Upon confirming, DBF searches for your site and contextual data in 500m radius of your site in real time and loads it onto the DBF tool in 3D format.
 
-Open `docs/getting-started.md` and edit some lines. The site reloads automatically and display your changes.
+‍
 
-## That's it!
-
-Congratulations! You've successfully run and modified your Docusaurus project.
+Have the Google Earth co-ordinates of your site? Copy paste them in the GE panel on the homepage.

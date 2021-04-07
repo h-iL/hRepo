@@ -14,4 +14,3 @@ Use the pencil tool to demarcate roads, parks and so on. Freehand drawing will y
 > The pencil allows to draw directly over the site and design, either as polyline or freehand.
 
 Pencil tool works very well in top view, so switch to plan view to draw directly over the site.
-

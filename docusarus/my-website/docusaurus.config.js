@@ -22,7 +22,14 @@ module.exports = {
           activeBasePath: 'docs',
           label: 'Docs',
           position: 'left',
-        },
+          },
+
+          {
+              to: 'docs/',
+              label: 'Community (coming soon!)',
+              position: 'left',
+              href:'https://github.com/facebook/docusaurus/edit/master/website/docs/getting-started.md',
+          },
         {to: 'blog', label: 'Blog', position: 'left'},
         {
           href: 'https://github.com/facebook/docusaurus',
@@ -32,7 +39,7 @@ module.exports = {
       ],
     },
     footer: {
-      style: 'dark',
+      style: 'light',
       links: [
         {
           title: 'Docs',
@@ -74,7 +81,7 @@ module.exports = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Digital Blue Foam. Built with Docusaurus.`,
     },
   },
   presets: [
@@ -86,7 +93,8 @@ module.exports = {
           // Please change this to your repo.
           editUrl:
             'https://github.com/facebook/docusaurus/edit/master/website/',
-        },
+          },
+        
         blog: {
           showReadingTime: true,
           // Please change this to your repo.

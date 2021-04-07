@@ -1,5 +1,5 @@
 ﻿---
-title: 2. Visualize Context##############
+title: 2. Visualize Context
 
 ---
 

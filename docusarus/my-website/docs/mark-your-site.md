@@ -1,8 +1,11 @@
-﻿ 
- 
-# 1. Mark your site
+﻿---
+title: 1. Mark Your Site
+slug: /
+---
 
-[Video](https://www.youtube.com/watch?v=tf2Na0OvCrA)
+ 
+
+[View our video tutorial here!](https://www.youtube.com/watch?v=tf2Na0OvCrA)
 
 ## Mark your site, anywhere in the world.
 
