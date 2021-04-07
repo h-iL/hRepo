@@ -23,14 +23,14 @@ var buildingElements = null
 var clock = new THREE.Clock();
 
 
-var controls
+var orbitControls
 
 var socket
 var player
 var raycaster
 var control
 
-//var dragControl 
+var dragControl 
 
 var INTERSECTED2
 
@@ -86,7 +86,7 @@ function init() {
     game = Game({
 
         scene: scene,
-        controls: controls, 
+        controls: orbitControls, 
         reflectionCube: refractionCube,
         refractionCube: reflectionCube
 
@@ -189,6 +189,8 @@ function dragCtrl(scene)
     // dragControls = new DragControls(group, camera, renderer.domElement)
     dragControls.addEventListener('drag', render)
 
+
+
     document.addEventListener('click', onClick)
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('keyup', onKeyUp)
@@ -229,52 +231,46 @@ function dragCtrl(scene)
     });
 
 
-    // scene.add(dragControls)
+     //scene.add(dragControls)
 
     return dragControls
 
 }
 
-function multipleControls()
-{
-    const axesHelper = new THREE.AxesHelper(5)
+function multipleControls() {
+    //const axesHelper = new THREE.AxesHelper(10)
 
-    scene.add(axesHelper)
+    //scene.add(axesHelper)
 
     renderer.domElement.ondragstart = function (event) {
         event.preventDefault()
         return false
-    }
-
-
-    //const geometry = new THREE.BoxGeometry(1, 1, 1)
-    //const material  = new THREE.MeshNormalMaterial({ transparent: true })
-
-    //const cube=new THREE.Mesh(geometry, material)
-    //scene.add(cube)
+    } 
 
     const dragControls = new DragControls([...objects], camera, renderer.domElement)
 
     dragControls.addEventListener("hoveron", function () {
-        controls.enabled = false
+        console.log('hover on')
+        console.log(orbitControls)
+        orbitControls.enabled = false
     })
 
     dragControls.addEventListener("hoveroff", function () {
-        controls.enabled=true
+        console.log('hover off')
+        console.log(orbitControls)
+        orbitControls.enabled = true
     })
 
-    dragControls.addEventListener('dragstart', function (event) {
-        event.object.material.opacity=0.33
-    })
+    //dragControls.addEventListener('dragstart', function (event) {
+    //    event.object.material.opacity = 0.33
+    //})
 
-    dragControls.addEventListener('dragend', function (event) {
-        event.object.material.opacity=1
-    })
-
-
+    //dragControls.addEventListener('dragend', function (event) {
+    //    event.object.material.opacity = 1
+    //})
 
     //let transformControls = new TransformControls(camera, renderer.domElement)
-    //transformControls.attach(scene.children)
+    //transformControls.attach(...objects)
     //transformControls.setMode("rotate")
     //scene.add(transformControls)
 
@@ -283,14 +279,27 @@ function multipleControls()
     //    dragControls.enabled= !event.value
     //})
 
+    //window.addEventListener('keydown', function (event) {
+    //    switch (event.key)
+    //    {
+    //        case "g":
+    //            transformControls.setMode("translate")
+    //            break
+    //        case "r":
+    //            transformControls.setMode("rotate")
+    //            break
+    //        case "s":
+    //            transformControls.setMode("scale")
+    //            break
+    //    }
+    //})
 
-
-
+    
 }
 
 function onKeyDown()
 {
-    enableSelection = (event.keyCode === 16 && event.keyCode===19) ? true : false
+    enableSelection = (event.keyCode === 16 ) ? true : false
 
 }
 
@@ -362,7 +371,8 @@ function initPlayer(game) {
         // colour: '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0'),
         model: null,
         name: name,
-        position: controls.object.position,
+        //position: controls.object.position,
+        position: orbitControls.object.position,
         rotation: {
             x: null,
             y: null
@@ -481,12 +491,18 @@ function updateLocal() {
 
 function updateGlobal() {
 
-    player.rotation.x = controls.getAzimuthalAngle()
-    player.rotation.y = controls.getPolarAngle()
+    //player.rotation.x = controls.getAzimuthalAngle()
+    //player.rotation.y = controls.getPolarAngle()
+
+    player.rotation.x = orbitControls.getAzimuthalAngle()
+    player.rotation.y = orbitControls.getPolarAngle()
+
     player.target = camera.getWorldDirection(new THREE.Vector3(0, 0, 0));
 
     // camera.getWorldQuaternion( quaternion );
-    player.position = controls.object.position
+    //player.position = controls.object.position
+
+    player.position = orbitControls.object.position
     socket.emit('update', player)
 
     // globalPlayer.geometry.postion.set(100,100,100)
@@ -501,7 +517,7 @@ function initTHREEVR(){
     setRendererVR()
     setScene()
     setCamera()
-    setControls()
+    setOrbitControls()
     setLights()
     initPlane() // make an invisible plane for shadows 
     setEvents()
@@ -519,6 +535,10 @@ function initTHREEVR(){
     //}
 
 
+    //dragControl = dragCtrl(scene)
+    
+
+    /*control=dragCtrl(scene)*/
 
     //control = initTransformControl(scene)
 
@@ -710,31 +730,20 @@ function setControls() {
     return controls 
 }
 
-function setControlsVR() {
 
+function setOrbitControls()
+{
+    orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+    //orbitControls.update();
+    // controls.enableZoom = true;
+    // controls.enablePan = true;
+    //orbitControls.minPolarAngle = Math.PI / 4;
+    //orbitControls.maxPolarAngle = Math.PI / 1.5;
+    //orbitControls.addEventListener('change', updateGlobal)
 
-    // controls = new OrbitControls(camera, renderer.domElement);
-
-    // orbit.addEventListener('change', render);
-
-    const session = renderer.xr.getSession()
-
-    if (session)
-    {
-        controls = new THREE.OrbitControls(renderer.xr.getCamera(camera), container);
-    }
-    
-
-    controls = new THREE.OrbitControls(camera, container);
-    controls.update();
-    controls.enableZoom = true;
-    controls.enablePan = true;
-    controls.minPolarAngle = Math.PI / 4;
-    controls.maxPolarAngle = Math.PI / 1.5;
-    controls.addEventListener('change', updateGlobal)
-
-    return controls
+    return orbitControls
 }
+
 
 function addModel() {
 
@@ -1145,7 +1154,7 @@ function togglePencil(bool) {
 }
 
 
-
+/*
 function selectionHover() {
 
     raycaster.setFromCamera(mouse, camera);
@@ -1189,6 +1198,8 @@ function selectionHover() {
     }
 
 }
+
+*/
 
 
 
