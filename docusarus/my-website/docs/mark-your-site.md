@@ -1,11 +1,11 @@
 ﻿---
-title: 1. Mark Your Site
+title: Mark Your Site
 slug: /
 ---
 
- 
+ <iframe width="868" height="488" src="https://www.youtube.com/embed/tf2Na0OvCrA" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
-[View our video tutorial here!](https://www.youtube.com/watch?v=tf2Na0OvCrA)
+
 
 ## Mark your site, anywhere in the world.
 

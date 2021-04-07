@@ -1,11 +1,8 @@
 ﻿---
-title: 6. Set Design Targets
+title: Set Design Targets
 
 ---
-
-
-[View our video tutorial here!](https://youtu.be/bmjvAKf5_YU)
-
+<iframe width="868" height="488" src="https://www.youtube.com/embed/bmjvAKf5_YU" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 
 ## Set design targets

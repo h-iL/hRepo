@@ -11,7 +11,9 @@ module.exports = {
                        'using-pencil-tool',
                        'visualize-sustainability',
                        'set-design-targets',
-                       'modify-solution'
+                  'modify-solution',
+                  'save-and-compare',
+                       'export-designs',
                      ],
 
 
@@ -20,24 +22,14 @@ module.exports = {
 
             },
 
-
-     
-
-        ],
-
-    community:
-        [
             {
                 type: 'category',
-                label: 'Getting Started!',
+                label: 'Get in touch!',
                 items: [
-                    'mark-your-site',
-                    'visualize-context',
-                    'generate-designs',
-                    'using-pencil-tool',
-                    'visualize-sustainability',
-                    'set-design-targets',
-                    'modify-solution'
+                    'propose-feature',
+                    'suggest-improvements',
+                    'give-feedback',
+                    'submit-design',
                 ],
 
 
@@ -45,9 +37,9 @@ module.exports = {
 
 
             },
-
-
-
+     
 
         ],
+
+   
 };

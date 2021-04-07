@@ -1,8 +1,8 @@
 ---
-title: 4. Use Pencil Tool
+title: Use Pencil Tool
 ---
 
-[View our video tutorial here!](https://youtu.be/U6kbRLvzWlY)
+<iframe width="868" height="488" src="https://www.youtube.com/embed/U6kbRLvzWlY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 
 ## Like pen & paper, but better.

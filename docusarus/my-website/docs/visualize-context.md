@@ -1,9 +1,9 @@
 ﻿---
-title: 2. Visualize Context
+title: Visualize Context
 
 ---
 
- [View our video tutorial here!](https://www.youtube.com/watch?v=g4PzBvk-RmI)
+<iframe width="868" height="488" src="https://www.youtube.com/embed/g4PzBvk-RmI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Visualize and understand context.
 

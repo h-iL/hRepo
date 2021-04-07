@@ -26,7 +26,7 @@ module.exports = {
 
           {
               to: 'docs/',
-              label: 'Community (coming soon!)',
+              label: 'FAQ',
               position: 'left',
               href:'https://github.com/facebook/docusaurus/edit/master/website/docs/getting-started.md',
           },

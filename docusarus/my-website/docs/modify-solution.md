@@ -1,8 +1,8 @@
 ---
-title: 7. Modify Solution
+title: Modify Solution
 
 ---
-[View our video tutorial here!](https://youtu.be/pTypzXlQjtI)
+<iframe width="868" height="488" src="https://www.youtube.com/embed/pTypzXlQjtI" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
 
 ## Modify designs
 
