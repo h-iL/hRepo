@@ -11,7 +11,7 @@ import Player from './javascripts/player/socket-player.js'
 import { getRandomName, getRandomAnimal, getRandomColour, colourNameToHex } from './javascripts/name-generator/name-generator.js'
 import { VRButton } from './jsm/webxr/VRButton.js'
 
-import { DragControls} from './jsm/DragControls.js'
+import { DragControls } from './jsm/DragControls.js'
 
 var container;
 var camera, scene, renderer;
@@ -27,13 +27,10 @@ var controls
 var socket
 var player
 var raycaster
-var control, dragControl 
+var control, dragControl
 
 var INTERSECTED2
-
 var objects = []
-
-
 let INTERSECTED;
 let theta = 0;
 const mouse = new THREE.Vector2();
@@ -83,7 +80,7 @@ function init() {
     game = Game({
 
         scene: scene,
-        controls: controls, 
+        controls: controls,
         reflectionCube: refractionCube,
         refractionCube: reflectionCube
 
@@ -111,7 +108,7 @@ function initChat() {
         let data = {}
         // data.str = player.name + ':' + $('#m').val()
 
-                data.str =$('#m').val()
+        data.str = $('#m').val()
 
 
         var v = new THREE.Vector3(); // create once and reuse it!
@@ -152,8 +149,7 @@ function initChat() {
 
 }
 
-function uiActions()
-{
+function uiActions() {
 
     //$("#something").click(function () {
     //    alert('it is clicked')
@@ -165,93 +161,89 @@ function uiActions()
     //    console.log('it is clicked')
     //})
 
-    $("#burgerMenu").click(function () {
+    $("#burgerMenu").click(function() {
         $("#popupMenu").show(500)
         $("#secondMenu").show(500)
     })
 
-    $(".close").click(function () {
+    $(".close").click(function() {
         $("#popupMenu").hide(500)
         $("#secondMenu").hide(500)
     })
 }
 
-function dragCtrl(scene)
-{
+function dragCtrl(scene) {
     group = new THREE.Group()
     scene.add(group)
 
     dragControls = new DragControls([...objects], camera, renderer.domElement)
 
     // dragControls = new DragControls(group, camera, renderer.domElement)
-    dragControls.addEventListener('drag', render)
+    // dragControls.addEventListener('drag', render)
 
-    document.addEventListener('click', onClick)
-    window.addEventListener('keydown', onKeyDown)
-    window.addEventListener('keyup', onKeyUp)
+    // document.addEventListener('click', onClick)
+    // window.addEventListener('keydown', onKeyDown)
+    // window.addEventListener('keyup', onKeyUp)
 
     //let transformCtrl = new TransformControls(camera, renderer.domElement)
-    
-    dragControls.addEventListener('drag', function (event) {
 
-        console.log('objectDrag')
+    // dragControls.addEventListener('drag', function (event) {
 
-        if (control.object)
-        {
-            group.children.forEach(g => {
+    //     console.log('objectDrag')
 
-                let o = g
+    //     if (control.object)
+    //     {
+    //         group.children.forEach(g => {
 
-                let data = {
-                    id: o.sid,
-                    x: o.position.x,
-                    y: o.position.y,
-                    z: o.position.z
-                }
+    //             let o = g
 
-                console.log(data)
+    //             let data = {
+    //                 id: o.sid,
+    //                 x: o.position.x,
+    //                 y: o.position.y,
+    //                 z: o.position.z
+    //             }
 
-                socket.emit('updateAsset', data)
+    //             console.log(data)
 
-            })
-        }
+    //             socket.emit('updateAsset', data)
 
-    });
+    //         })
+    //     }
 
-    dragControls.addEventListener('hoveron', function (event) {
+    // });
 
-        controls.enabled = !event.value;
+    // dragControls.addEventListener('hoveron', function (event) {
 
-        console.log('dragging-changed!', INTERSECTED)
+    //     controls.enabled = !event.value;
 
-    });
+    //     console.log('dragging-changed!', INTERSECTED)
+
+    // });
 
 
     // scene.add(dragControls)
 
-    return dragControls
+    // return dragControls
+    return null
 
 }
 
-function onKeyDown()
-{
-    enableSelection = (event.keyCode === 16 ) ? true : false
+function onKeyDown() {
+    enableSelection = (event.keyCode === 16) ? true : false
 
 }
 
-function onKeyUp()
-{
+function onKeyUp() {
     enableSelection = false
 
 }
 
-function onClick(event)
-{
+function onClick(event) {
     console.log('object selected for drag!')
     event.preventDefault()
 
-    if (enableSelection === true)
-    {
+    if (enableSelection === true) {
         const draggableObjects = dragControls.getObjects()
         draggableObjects.length = 0
 
@@ -259,20 +251,17 @@ function onClick(event)
         mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
 
         raycaster.setFromCamera(mouse, camera)
-        const intersections = raycaster.intersectObjects(objects,true)
+        const intersections = raycaster.intersectObjects(objects, true)
 
 
-        if (intersections.length > 0)
-        {
+        if (intersections.length > 0) {
             const object = intersections[0].object
 
 
             if (group.children.includes(object) === true) {
                 object.material.emissive.set(0x000000)
                 scene.attach(object)
-            }
-            else
-            {
+            } else {
                 object.material.emissive.set(0xaaaaaa)
                 group.attach(object)
             }
@@ -281,8 +270,7 @@ function onClick(event)
             draggableObjects.push(group)
         }
 
-        if (group.children.length === 0)
-        {
+        if (group.children.length === 0) {
             dragControls.transformGroup = false
             draggableObjects.push(...objects)
         }
@@ -359,8 +347,8 @@ function initSocket(socket) {
             console.log('initalize game!')
             game.addUserTag(player.colour, data.id, player.name + ' (You)')
             game.initialized = true
-                // } else {
-                //     console.log('game already initialized')
+            // } else {
+            //     console.log('game already initialized')
 
         }
 
@@ -440,7 +428,7 @@ function updateGlobal() {
 }
 
 
-function initTHREEVR(){
+function initTHREEVR() {
 
     setEnvironmentMap()
     setRendererVR()
@@ -454,7 +442,7 @@ function initTHREEVR(){
     setRaycaster()
 
 
-    control= dragCtrl(scene)
+    // control= dragCtrl(scene)
     control = initTransformControl(scene)
 
 }
@@ -473,9 +461,9 @@ function initTHREE() {
     addPickingBoxes()
     setRaycaster()
 
-    control = initTransformControl(scene)
+    // control = initTransformControl(scene)
 
-    dragControl= dragCtrl(scene)
+    dragControl = dragCtrl(scene)
 
 }
 
@@ -567,17 +555,109 @@ function setEvents() {
     // body...
 
     window.addEventListener("dblclick", attachTransform);
-    document.addEventListener('mousemove', onDocumentMouseMove, false);
+    window.addEventListener('mousemove', onDocumentMouseMove, false);
     window.addEventListener('resize', onWindowResize, false);
-    document.body.onkeyup = function(e) {
-        if (e.keyCode == 32) {
-            //your code
-            console.log('hi')
-            updateTexture({
-                meshes: buildingElements.envelope
-            })
+    window.addEventListener('keydown', function(event) {
+
+        switch (event.keyCode) {
+
+            case 81: // Q
+                control.setSpace(control.space === "local" ? "world" : "local");
+                break;
+
+            case 16: // Shift
+                control.setTranslationSnap(5);
+                control.setRotationSnap(THREE.MathUtils.degToRad(15));
+                control.setScaleSnap(0.25);
+                break;
+
+            case 87: // W
+                control.setMode("translate");
+                break;
+
+            case 69: // E
+                control.setMode("rotate");
+                break;
+
+            case 82: // R
+                control.setMode("scale");
+                break;
+
+            // case 67: // C
+            //     const position = currentCamera.position.clone();
+
+            //     currentCamera = currentCamera.isPerspectiveCamera ? cameraOrtho : cameraPersp;
+            //     currentCamera.position.copy(position);
+
+            //     orbit.object = currentCamera;
+            //     control.camera = currentCamera;
+
+            //     currentCamera.lookAt(orbit.target.x, orbit.target.y, orbit.target.z);
+            //     onWindowResize();
+            //     break;
+
+            // case 86: // V
+            //     const randomFoV = Math.random() + 0.1;
+            //     const randomZoom = Math.random() + 0.1;
+
+            //     cameraPersp.fov = randomFoV * 160;
+            //     cameraOrtho.bottom = -randomFoV * 500;
+            //     cameraOrtho.top = randomFoV * 500;
+
+            //     cameraPersp.zoom = randomZoom * 5;
+            //     cameraOrtho.zoom = randomZoom * 5;
+            //     onWindowResize();
+            //     break;
+
+            case 187:
+            case 107: // +, =, num+
+                control.setSize(control.size + 0.1);
+                break;
+
+            case 189:
+            case 109: // -, _, num-
+                control.setSize(Math.max(control.size - 0.1, 0.1));
+                break;
+
+            case 88: // X
+                control.showX = !control.showX;
+                break;
+
+            case 89: // Y
+                control.showY = !control.showY;
+                break;
+
+            case 90: // Z
+                control.showZ = !control.showZ;
+                break;
+
+            case 32: // Spacebar
+                control.enabled = !control.enabled;
+                break;
+
         }
-    }
+
+    });
+
+    window.addEventListener('keyup', function(event) {
+
+        switch (event.keyCode) {
+
+            case 16: // Shift
+                control.setTranslationSnap(null);
+                control.setRotationSnap(null);
+                control.setScaleSnap(null);
+                break;
+
+        }
+
+    });
+
+
+
+
+
+
 }
 
 
@@ -601,12 +681,11 @@ function setRenderer() {
 
 }
 
-function setRendererVR()
-{
+function setRendererVR() {
     container = document.createElement('div');
     document.body.appendChild(container);
     //renderer
-    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     // renderer.shadowMap.enabled = true;
@@ -627,7 +706,7 @@ function setRendererVR()
 
 function setControls() {
 
-   
+
 
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
@@ -638,7 +717,7 @@ function setControls() {
     controls.maxPolarAngle = Math.PI / 1.5;
     controls.addEventListener('change', updateGlobal)
 
-    return controls 
+    return controls
 }
 
 function setControlsVR() {
@@ -650,11 +729,10 @@ function setControlsVR() {
 
     const session = renderer.xr.getSession()
 
-    if (session)
-    {
+    if (session) {
         controls = new THREE.OrbitControls(renderer.xr.getCamera(camera), container);
     }
-    
+
 
     controls = new THREE.OrbitControls(camera, container);
     controls.update();
@@ -801,11 +879,9 @@ function animate() {
     // const dt = this.clock.getDelta();  
     let dt = null
     game.updateRemotePlayers(dt)
-
     comments.forEach(msg => msg.lookAt(camera.position))
 
     selectionHover()
-
     // raycast()
     requestAnimationFrame(animate);
     render();
@@ -860,9 +936,9 @@ function setLights(argument) {
     let sun = Sun(scene)
 
     scene.add(sun.getLight())
-        // let mesh = sun.getMesh()
-        // scene.add(mesh)
-        // scene.add(sun.getMesh())
+    // let mesh = sun.getMesh()
+    // scene.add(mesh)
+    // scene.add(sun.getMesh())
 
     var ambient = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambient);
@@ -945,8 +1021,8 @@ function raycast() {
             INTERSECTED = intersects[0].object;
 
             scene.remove(INTERSECTED)
-                // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
-                // INTERSECTED.material.color =0xff0000;
+            // INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+            // INTERSECTED.material.color =0xff0000;
 
         }
 
@@ -978,7 +1054,7 @@ function createTexturePainter(p) {
     p.setup = function() {
 
         let myCanvas = p.createCanvas(512, 512)
-            // p.background(255)
+        // p.background(255)
 
 
     }
@@ -1057,7 +1133,7 @@ function paintPaper(stroke) {
 $('#toggle-paint').click(() => {
 
     paintmode = !paintmode
-        // controls.enabled = !paintmode
+    // controls.enabled = !paintmode
     togglePencil(paintmode)
     socket.emit('toggle pencil', paintmode)
 
@@ -1225,6 +1301,111 @@ function updateTransformControl(mesh) {
 
     control.attach(mesh);
     // control.detach(mesh)
+}
+
+
+
+
+
+
+
+
+
+function initTransformControl(scene) {
+
+    let newControl = new TransformControls(currentCamera, renderer.domElement);
+    newControl.addEventListener('change', render);
+
+    newControl.addEventListener('dragging-changed', function(event) {
+
+        orbit.enabled = !event.value;
+
+    });
+
+    scene.add(newControl);
+
+
+
+    return newControl
+}
+
+
+function updateTransformControl(mesh) {
+
+    console.log()
+
+    control.attach(mesh);
+    // control.detach(mesh)
+}
+
+
+
+function onDocumentMouseMove(event) {
+
+    event.preventDefault();
+
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+}
+
+function onWindowResize() {
+
+    const aspect = window.innerWidth / window.innerHeight;
+
+    cameraPersp.aspect = aspect;
+    cameraPersp.updateProjectionMatrix();
+
+    cameraOrtho.left = cameraOrtho.bottom * aspect;
+    cameraOrtho.right = cameraOrtho.top * aspect;
+    cameraOrtho.updateProjectionMatrix();
+
+    renderer.setSize(window.innerWidth, window.innerHeight);
+
+    render();
+
+}
+
+function render() {
+
+    renderer.render(scene, currentCamera);
+    findIntersections(mouse, currentCamera)
+
+}
+
+function findIntersections(camera) {
+
+    // find intersections
+
+    raycaster.setFromCamera(mouse, currentCamera);
+
+    const intersects = raycaster.intersectObjects(selectionObjects);
+
+    // console.log(scen)
+
+    // console.log(intersects)
+
+    if (intersects.length > 0) {
+
+        if (INTERSECTED != intersects[0].object) {
+
+            if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+            INTERSECTED = intersects[0].object;
+            INTERSECTED.currentHex = INTERSECTED.material.emissive.getHex();
+            INTERSECTED.material.emissive.setHex(0xff0000);
+            console.log(INTERSECTED)
+
+        }
+
+    } else {
+
+        if (INTERSECTED) INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
+
+        INTERSECTED = null;
+
+    }
+
 }
 
 
