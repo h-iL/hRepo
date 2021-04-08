@@ -1,0 +1,20 @@
+{
+  "unversionedId": "give-feedback",
+  "id": "give-feedback",
+  "isDocsHomePage": false,
+  "title": "Give us feedback",
+  "source": "@site/docs/give-feedback.md",
+  "slug": "/give-feedback",
+  "permalink": "/docs/give-feedback",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/give-feedback.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Suggest Improvements",
+    "permalink": "/docs/suggest-improvements"
+  },
+  "next": {
+    "title": "Submit your design",
+    "permalink": "/docs/submit-design"
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "unversionedId": "set-design-targets",
+  "id": "set-design-targets",
+  "isDocsHomePage": false,
+  "title": "Set Design Targets",
+  "description": "Set design targets",
+  "source": "@site/docs/set-design-targets.md",
+  "slug": "/set-design-targets",
+  "permalink": "/docs/set-design-targets",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/set-design-targets.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Visualize Sustainability",
+    "permalink": "/docs/visualize-sustainability"
+  },
+  "next": {
+    "title": "Modify Solution",
+    "permalink": "/docs/modify-solution"
+  }
+}

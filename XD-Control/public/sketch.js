@@ -3,8 +3,12 @@ console.log('yeah it is running')
 
 import { TransformControls } from './js/TransformControls.js'
 import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.119.1/examples/jsm/controls/OrbitControls.min.js"
-import { DragControls } from './js/DragControls.js'
 
+import { SelectionBox } from './js/SelectionBox.js'
+import { SelectionHelper } from './js/SelectionHelper.js'
+
+
+var allSelected=[]
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -16,6 +20,7 @@ const renderer = new THREE.WebGLRenderer()
 
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -30,50 +35,47 @@ scene.background = backgroundTexture
 
 ////////////////////////////////////////////////////////////////////////////////
 
-let geometry = new THREE.BoxGeometry(1, 1, 1)
-let material = new THREE.MeshBasicMaterial({ color: 'grey' })
-let cube = new THREE.Mesh(geometry,material)
 
-scene.add(cube)
+
+const light = new THREE.SpotLight(0xffffff, 1.5)
+light.position.set(0, 500, 2000)
+light.angle=Math.PI/9
+
+light.castShadow = true
+scene.add(light)
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
 
-//renderer.domElement.ondragstart = function (event)
-//{
-//    event.preventDefault()
-//    return false
-//}
 
-//adding only this line you will be able to zoom pan or
+
+const group = new THREE.Group()
+scene.add(group)
+
+const geometry = new THREE.BoxGeometry(2, 2, 2)
+
+for (let i = 0; i < 20; i++)
+{
+    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }))
+
+    object.position.x = Math.random() * 50 - 25
+    object.position.y = Math.random() * 50 - 25
+    object.position.z = Math.random() * 50 - 25
+
+    scene.add(object)
+    group.add(object)
+
+}
+
+
+////////////////////////////////////////////////////////////////////////////////
+
 const orbitControls = new OrbitControls(camera, renderer.domElement)
 
-const dragControls = new DragControls([cube], camera, renderer.domElement)
-
-dragControls.addEventListener('hoveron', function () {
-
-    orbitControls.enabled = false
-
-})
-
-dragControls.addEventListener('hoveroff', function () {
-
-    orbitControls.enabled = true
-
-})
-
-dragControls.addEventListener('dragstart', function (event) {
-
-    event.object.material.opacity=0.33
-})
-
-dragControls.addEventListener('dragend', function (event) {
-
-    event.object.material.opacity=1
-})
 
 const transformControls = new TransformControls(camera, renderer.domElement)
-transformControls.attach(cube)
+transformControls.attach(group)
 transformControls.setMode('rotate')
 scene.add(transformControls)
 
@@ -81,9 +83,8 @@ scene.add(transformControls)
 transformControls.addEventListener('dragging-changed', function (event) {
 
     orbitControls.enabled = !event.value
-    dragControls.enabled = !event.value
+    
 })
-
 
 
 window.addEventListener('keydown', function (event) {
@@ -101,8 +102,101 @@ window.addEventListener('keydown', function (event) {
         case "s":
             transformControls.setMode('scale')
             break
+
+        case "z":
+            orbitControls.enabled = false
+            break
+
+        case "x":
+            orbitControls.enabled = true
+            break
+
+        
     }
 })
+
+
+document.addEventListener('dblclick', function () {
+
+    if (orbitControls.enabled) {
+        orbitControls.enabled = false
+    }
+
+    else orbitControls.enabled = true
+})
+
+////////////////////////////////////////////////////////////////////////////////
+
+const selectionBox = new SelectionBox(camera, scene)
+const helper = new SelectionHelper(selectionBox, renderer, 'selectBox')
+
+document.addEventListener('pointerdown', function (event) {
+
+
+    console.log('pointer down')
+
+    for (var item of selectionBox.collection )
+    {
+        item.material.opacity = 0.1
+    }
+
+    selectionBox.startPoint.set((event.clientX / window.innerWidth) * 2 - 1, -(event.clientY / window.innerHeight) * 2 + 1, 0.5)
+
+})
+
+document.addEventListener('pointermove', function (event) {
+
+    if (helper.isDown)
+    {
+        console.log('pointer move')
+
+        for (let i = 0; i < selectionBox.collection.length; i++)
+        {
+            //selectionBox.collection[i].material.emissive.set(0x000000)
+            selectionBox.collection[i].material.opacity=0.5
+        }
+
+        selectionBox.endPoint.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+        0.5)
+
+        allSelected = selectionBox.select()
+
+        for (let i = 0; i < allSelected.length; i++)
+
+        {
+            //allSelected[i].material.emissive.set(0xffffff)
+            allSelected[i].material.opacity = 1
+        }
+
+    }
+
+})
+
+document.addEventListener('pointerup', function (event) {
+
+    console.log('pointer up')
+
+    selectionBox.endPoint.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+        0.5)
+
+    var allSelected = selectionBox.select()
+
+    for (let i = 0; i < allSelected.length; i++)
+    {
+        //allSelected[i].material.emissive.set(0xffffff)
+        allSelected[i].material.opacity=0.1
+    }
+
+
+})
+
+
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////

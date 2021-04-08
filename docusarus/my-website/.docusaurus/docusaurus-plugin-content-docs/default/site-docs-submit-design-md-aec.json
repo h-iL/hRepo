@@ -1,0 +1,16 @@
+{
+  "unversionedId": "submit-design",
+  "id": "submit-design",
+  "isDocsHomePage": false,
+  "title": "Submit your design",
+  "source": "@site/docs/submit-design.md",
+  "slug": "/submit-design",
+  "permalink": "/docs/submit-design",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/submit-design.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Give us feedback",
+    "permalink": "/docs/give-feedback"
+  }
+}

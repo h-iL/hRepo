@@ -1,0 +1,17 @@
+{
+  "unversionedId": "mark-your-site",
+  "id": "mark-your-site",
+  "isDocsHomePage": false,
+  "title": "Mark Your Site",
+  "description": "Mark your site, anywhere in the world.",
+  "source": "@site/docs/mark-your-site.md",
+  "slug": "/",
+  "permalink": "/docs/",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/mark-your-site.md",
+  "version": "current",
+  "sidebar": "docs",
+  "next": {
+    "title": "Visualize Context",
+    "permalink": "/docs/visualize-context"
+  }
+}
