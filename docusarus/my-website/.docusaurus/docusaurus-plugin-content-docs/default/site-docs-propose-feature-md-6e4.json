@@ -1,0 +1,20 @@
+{
+  "unversionedId": "propose-feature",
+  "id": "propose-feature",
+  "isDocsHomePage": false,
+  "title": "Propose a feature",
+  "source": "@site/docs/propose-feature.md",
+  "slug": "/propose-feature",
+  "permalink": "/docs/propose-feature",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/propose-feature.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Export Designs",
+    "permalink": "/docs/export-designs"
+  },
+  "next": {
+    "title": "Suggest Improvements",
+    "permalink": "/docs/suggest-improvements"
+  }
+}

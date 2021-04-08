@@ -1,0 +1,21 @@
+{
+  "unversionedId": "generate-designs",
+  "id": "generate-designs",
+  "isDocsHomePage": false,
+  "title": "Generate Designs",
+  "description": "Generate designs at blazing speeds.",
+  "source": "@site/docs/generate-designs.md",
+  "slug": "/generate-designs",
+  "permalink": "/docs/generate-designs",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/generate-designs.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Visualize Context",
+    "permalink": "/docs/visualize-context"
+  },
+  "next": {
+    "title": "Use Pencil Tool",
+    "permalink": "/docs/using-pencil-tool"
+  }
+}

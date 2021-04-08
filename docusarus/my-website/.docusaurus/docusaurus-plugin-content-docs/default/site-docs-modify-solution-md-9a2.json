@@ -1,0 +1,21 @@
+{
+  "unversionedId": "modify-solution",
+  "id": "modify-solution",
+  "isDocsHomePage": false,
+  "title": "Modify Solution",
+  "description": "Modify designs",
+  "source": "@site/docs/modify-solution.md",
+  "slug": "/modify-solution",
+  "permalink": "/docs/modify-solution",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/modify-solution.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Set Design Targets",
+    "permalink": "/docs/set-design-targets"
+  },
+  "next": {
+    "title": "Save and Compare",
+    "permalink": "/docs/save-and-compare"
+  }
+}

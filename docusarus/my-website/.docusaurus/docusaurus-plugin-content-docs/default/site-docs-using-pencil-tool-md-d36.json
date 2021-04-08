@@ -1,0 +1,21 @@
+{
+  "unversionedId": "using-pencil-tool",
+  "id": "using-pencil-tool",
+  "isDocsHomePage": false,
+  "title": "Use Pencil Tool",
+  "description": "Like pen & paper, but better.",
+  "source": "@site/docs/using-pencil-tool.md",
+  "slug": "/using-pencil-tool",
+  "permalink": "/docs/using-pencil-tool",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/using-pencil-tool.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Generate Designs",
+    "permalink": "/docs/generate-designs"
+  },
+  "next": {
+    "title": "Visualize Sustainability",
+    "permalink": "/docs/visualize-sustainability"
+  }
+}
