@@ -222,8 +222,8 @@ document.addEventListener('pointerup', function (event) {
     const allSelected = selectionBox.select()
     //console.log(allSelected)
 
-    allSelected.forEach(o => tempGroup.add(o))
-    transformControls.attach(tempGroup)
+    //allSelected.forEach(o => tempGroup.add(o))
+    //transformControls.attach(tempGroup)
 
     //onGroupingStart(allSelected)
     //onGroupingEnd()
