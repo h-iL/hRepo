@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
     "",
-    "\\public"
+    "\\public",
+    "\\public\\javascripts",
+    "\\public\\javascripts\\game"
   ],
   "SelectedNode": "\\public\\sketch.js",
   "PreviewInSolutionExplorer": false

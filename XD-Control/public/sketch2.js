@@ -2,14 +2,14 @@
 console.log('sketch2.js')
 
 import { TransformControls } from './js/TransformControls.js'
+//import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.119.1/examples/jsm/controls/OrbitControls.min.js"
 import { OrbitControls } from "./js/OrbitControls.js"
+
 import { SelectionBox } from './js/SelectionBox.js'
 import { SelectionHelper } from './js/SelectionHelper.js'
 import { MeshLambertMaterial } from './js/three.module.js'
 import { DragControls } from './js/DragControls.js'
 import { EditorControls } from './js/EditorControls.js'
-
-import { Controls } from './js/Viewport.controls.js'
 
 
 var allSelected = []
@@ -50,20 +50,18 @@ scene.add(light)
 
 let objects = []
 
-const geometry = new THREE.BoxGeometry()
+const geometry = new THREE.BoxGeometry(2, 2, 2)
 
-for (let x = 0; x < 5; x ++){
-    for (let y = 0; y < 5; y++){
-        for (let z = 0; z < 5; z++){
+for (let i = 0; i < 20; i++) {
+    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }))
 
-            const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }))
-            object.position.set(x,y,z)
-            scene.add(object)
-            objects.push(object)
-        }
-    }
+    object.position.x = Math.random() * 50 - 25
+    object.position.y = Math.random() * 50 - 25
+    object.position.z = Math.random() * 50 - 25
+
+    scene.add(object)
+    objects.push(object)
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -146,21 +144,22 @@ const helper = new SelectionHelper(selectionBox, renderer,'selectBox')
 
     document.addEventListener('pointerdown', function (event) {
 
-        if (event.button === 0){
+        if (event.button === 0)
+        {
             console.log('pointer down')
 
-            // for (const item of selectionBox.collection) {
+            for (const item of selectionBox.collection) {
 
-            //     try {
-            //         if (item.material.type === 'MeshLambertMaterial')
-            //             item.material.emissive.set(0x000000);
+                try {
+                    if (item.material.type === 'MeshLambertMaterial')
+                        item.material.emissive.set(0x000000);
 
-            //     }
-            //     catch (err) {
-            //         console.log(item.material)
-            //     }
+                }
+                catch (err) {
+                    console.log(item.material)
+                }
 
-            // }
+            }
 
             selectionBox.startPoint.set(
                 (event.clientX / window.innerWidth) * 2 - 1,

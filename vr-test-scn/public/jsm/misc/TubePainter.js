@@ -29,7 +29,8 @@ function TubePainter() {
 	geometry.drawRange.count = 0;
 
 	const material = new MeshStandardMaterial( {
-		vertexColors: true
+		vertexColors: true,
+		color: '#f07c19'
 	} );
 
 	const mesh = new Mesh( geometry, material );

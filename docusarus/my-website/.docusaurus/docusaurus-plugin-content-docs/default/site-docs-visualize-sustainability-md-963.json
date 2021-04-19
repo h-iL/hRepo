@@ -1,0 +1,21 @@
+{
+  "unversionedId": "visualize-sustainability",
+  "id": "visualize-sustainability",
+  "isDocsHomePage": false,
+  "title": "Visualize Sustainability",
+  "description": "Sun, wind, water & earth.",
+  "source": "@site/docs/visualize-sustainability.md",
+  "slug": "/visualize-sustainability",
+  "permalink": "/docs/visualize-sustainability",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/visualize-sustainability.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Use Pencil Tool",
+    "permalink": "/docs/using-pencil-tool"
+  },
+  "next": {
+    "title": "Set Design Targets",
+    "permalink": "/docs/set-design-targets"
+  }
+}

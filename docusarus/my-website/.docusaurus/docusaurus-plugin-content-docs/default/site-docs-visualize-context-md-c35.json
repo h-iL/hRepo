@@ -1,0 +1,21 @@
+{
+  "unversionedId": "visualize-context",
+  "id": "visualize-context",
+  "isDocsHomePage": false,
+  "title": "Visualize Context",
+  "description": "Visualize and understand context.",
+  "source": "@site/docs/visualize-context.md",
+  "slug": "/visualize-context",
+  "permalink": "/docs/visualize-context",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/visualize-context.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Mark Your Site",
+    "permalink": "/docs/"
+  },
+  "next": {
+    "title": "Generate Designs",
+    "permalink": "/docs/generate-designs"
+  }
+}

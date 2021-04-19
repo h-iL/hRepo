@@ -1,0 +1,20 @@
+{
+  "unversionedId": "suggest-improvements",
+  "id": "suggest-improvements",
+  "isDocsHomePage": false,
+  "title": "Suggest Improvements",
+  "source": "@site/docs/suggest-improvements.md",
+  "slug": "/suggest-improvements",
+  "permalink": "/docs/suggest-improvements",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/suggest-improvements.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Propose a feature",
+    "permalink": "/docs/propose-feature"
+  },
+  "next": {
+    "title": "Give us feedback",
+    "permalink": "/docs/give-feedback"
+  }
+}

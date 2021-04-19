@@ -29,10 +29,8 @@ Player.prototype = {
             // console.log(this.game.controls)
         this.position = null
         this.position = this.game.controls.object.position
+        
         this.game.player = this 
-
-
-
     },
 
     initAvatar: function() {
@@ -46,8 +44,8 @@ Player.prototype = {
 
         const objLoader = new THREE.OBJLoader();
 
-        objLoader.setPath('obj/walt/')
-        objLoader.load('WaltHead.obj', (object)=> {
+        objLoader.setPath('obj/vrhead/')
+        objLoader.load('vrhead.obj', (object)=> {
 
             this.game.avatar = object.children[0];
             this.game.avatar.scale.multiplyScalar(1);

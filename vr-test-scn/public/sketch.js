@@ -51,7 +51,8 @@ let reflector
 var socket
 
 const cursor = new THREE.Vector3()
-const painter1 =new TubePainter()
+const painter1 = new TubePainter()
+
 const painter2 = new TubePainter()
 
 
@@ -127,16 +128,15 @@ function init() {
     window.addEventListener('resize', onWindowResize, false)
 
     socket = io.connect('http://localhost:3000')
-    socket.on() //add the event and function here
+    socket.on('hello', function () { console.log('hello to you too')}) //add the event and function here
 
 }
 
 function paintVR()
 {
-    
     scene.add(painter1.mesh)
-
     scene.add(painter2.mesh)
+    
 
     const cylinderGeo = new THREE.CylinderGeometry(0.01, 0.02, 0.08, 5)
     cylinderGeo.rotateX(-Math.PI / 2)
@@ -182,7 +182,7 @@ function addTextureBuilding() {
     buildingElements.envelope.forEach(mesh => scene.add(mesh))
 
     //buildingElements.slabs.forEach(mesh => group.add(mesh))
-    //buildingElements.envelope.forEach(mesh => group.add(mesh))
+    buildingElements.envelope.forEach(mesh => group.add(mesh))
 
 
 }
@@ -266,7 +266,7 @@ function render() {
     intersectObjects(controller2)
 
     handleController(controller1)
-    handleController(controller2)
+    //handleController(controller2)
 
     dollyMove()
     renderer.render(scene, camera)
@@ -861,7 +861,8 @@ function addGrabbableStuff() {
 function add3DFiles() {
 
     const gltfLoader = new GLTFLoader()
-    var treeGroup = new THREE.Group()
+    let treeGroup = new THREE.Group()
+    let treeMaterial = new THREE.MeshStandardMaterial({ color:'#2646530'})
 
     for (let i = 0; i < 30; i++)
     {
@@ -870,26 +871,41 @@ function add3DFiles() {
 
             './assets/glb/tree_1.glb',
 
-            function (gltf) {
-
-                //treeGroup.add(gltf.scene.children[0])
-
-                //let tree = gltf.scene
-                //tree.position.set(5,5,5)
-
-                //console.log('add3DFiles:: ', gltf.scene.children[0])
-                //scene.add(tree)  
-
+            function (gltf) {               
                 let tree = gltf.scene
+                tree.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ color: new THREE.Color("rgb(42, 157, 143)"), side: THREE.DoubleSide }) })
                 tree.castShadow = true
                 tree.receiveShadow = true
                 tree.position.x = Math.floor(Math.random() * 10 - 5) * 2 + 17
                 tree.position.z = Math.floor(Math.random() * 20 - 5) * 2 + 40
-
-                tree.scale.setScalar(Math.random()+1 )
-
+                tree.scale.setScalar(Math.random() * 2)
                 treeGroup.add(tree)
+            },
 
+            undefined,
+
+            function (error) {
+
+                console.error(error)
+
+            })
+    }
+
+    for (let i = 0; i < 30; i++) {
+
+        gltfLoader.load(
+
+            './assets/glb/tree_1.glb',
+
+            function (gltf) {
+                let tree = gltf.scene
+                tree.traverse((o) => { if (o.isMesh) o.material = new THREE.MeshStandardMaterial({ color: new THREE.Color("rgb(42, 157, 143)"), side: THREE.DoubleSide }) })
+                tree.castShadow = true
+                tree.receiveShadow = true
+                tree.position.x = Math.floor(Math.random() * 20 - 5) * 2 
+                tree.position.z = Math.floor(Math.random() * 10 - 5) * 2 -70
+                tree.scale.setScalar(Math.random() + 2)
+                treeGroup.add(tree)
             },
 
             undefined,

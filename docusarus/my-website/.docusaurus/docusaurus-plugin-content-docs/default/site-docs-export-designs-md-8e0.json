@@ -1,0 +1,21 @@
+{
+  "unversionedId": "export-designs",
+  "id": "export-designs",
+  "isDocsHomePage": false,
+  "title": "Export Designs",
+  "description": "Export your designs",
+  "source": "@site/docs/export-designs.md",
+  "slug": "/export-designs",
+  "permalink": "/docs/export-designs",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/export-designs.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Save and Compare",
+    "permalink": "/docs/save-and-compare"
+  },
+  "next": {
+    "title": "Propose a feature",
+    "permalink": "/docs/propose-feature"
+  }
+}

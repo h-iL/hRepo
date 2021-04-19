@@ -1,0 +1,21 @@
+{
+  "unversionedId": "save-and-compare",
+  "id": "save-and-compare",
+  "isDocsHomePage": false,
+  "title": "Save and Compare",
+  "description": "Save your favourite designs and pit them against each other.",
+  "source": "@site/docs/save-and-compare.md",
+  "slug": "/save-and-compare",
+  "permalink": "/docs/save-and-compare",
+  "editUrl": "https://github.com/facebook/docusaurus/edit/master/website/docs/save-and-compare.md",
+  "version": "current",
+  "sidebar": "docs",
+  "previous": {
+    "title": "Modify Solution",
+    "permalink": "/docs/modify-solution"
+  },
+  "next": {
+    "title": "Export Designs",
+    "permalink": "/docs/export-designs"
+  }
+}

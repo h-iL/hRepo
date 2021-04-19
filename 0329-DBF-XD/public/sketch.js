@@ -9,7 +9,10 @@ import Game from './javascripts/game/game.js'
 import Player from './javascripts/player/socket-player.js'
 
 import { getRandomName, getRandomAnimal, getRandomColour, colourNameToHex } from './javascripts/name-generator/name-generator.js'
+import { VRButton } from './jsm/webxr/VRButton.js'
 
+import { DragControls} from './jsm/DragControls.js'
+import { OrbitControls } from './jsm/OrbitControls.js';
 
 var container;
 var camera, scene, renderer;
@@ -18,11 +21,17 @@ var reflectionCube
 var refractionCube
 var buildingElements = null
 var clock = new THREE.Clock();
-var controls
+
+
+var orbitControls
+
 var socket
 var player
 var raycaster
+
 var control
+
+var dragControl 
 
 var INTERSECTED2
 
@@ -51,9 +60,15 @@ let myPlayer
 
 let comments = []
 
+//drag controls
+let dragControls
+let enableSelection = false
+let group
+
+
 
 init()
-animate()
+animateVR()
 
 
 const geometry = new THREE.ConeGeometry(10, 50, 32);
@@ -66,13 +81,14 @@ pencil.rotateX(-Math.PI);
 
 function init() {
 
-    // initTHREE()
+    //initTHREE()
     initTHREEVR()
 
     game = Game({
 
         scene: scene,
-        controls: controls, 
+
+        controls: orbitControls, 
         reflectionCube: refractionCube,
         refractionCube: reflectionCube
 
@@ -84,6 +100,9 @@ function init() {
     initPaper()
     myPlayer = initPlayer(game)
     initChat()
+
+    uiActions()
+
 
 }
 
@@ -138,6 +157,207 @@ function initChat() {
 
 }
 
+function uiActions()
+{
+
+    //$("#something").click(function () {
+    //    alert('it is clicked')
+    //    $(this).hide(300).show(1000)
+    //})
+
+    //$("#newButton").click(function () {
+    //    $(this).hide(500).show(500)
+    //    console.log('it is clicked')
+    //})
+
+    $("#burgerMenu").click(function () {
+        $("#popupMenu").show(500)
+        $("#secondMenu").show(500)
+    })
+
+    $(".close").click(function () {
+        $("#popupMenu").hide(500)
+        $("#secondMenu").hide(500)
+    })
+}
+
+function dragCtrl(scene)
+{
+    group = new THREE.Group()
+    scene.add(group)
+
+    dragControls = new DragControls([...objects], camera, renderer.domElement)
+
+    // dragControls = new DragControls(group, camera, renderer.domElement)
+    dragControls.addEventListener('drag', render)
+
+
+    document.addEventListener('click', onClick)
+    window.addEventListener('keydown', onKeyDown)
+    window.addEventListener('keyup', onKeyUp)
+
+    
+    dragControls.addEventListener('drag', function (event) {
+
+    // dragControls.addEventListener('drag', function (event) {
+
+        console.log('objectDrag')
+
+        if (control.object)
+        {
+            group.children.forEach(g => {
+
+                let o = g
+
+                let data = {
+                    id: o.sid,
+                    x: o.position.x,
+                    y: o.position.y,
+                    z: o.position.z
+                }
+
+                console.log(data)
+
+                socket.emit('updateAsset', data)
+
+            })
+        }
+
+    });
+
+    dragControls.addEventListener('hoveron', function (event) {
+
+        controls.enabled = !event.value;
+
+        console.log('dragging-changed!', INTERSECTED)
+
+    });
+
+
+     //scene.add(dragControls)
+
+    return dragControls
+
+}
+
+
+function multipleControls() {
+    //const axesHelper = new THREE.AxesHelper(10)
+
+    //scene.add(axesHelper)
+
+    renderer.domElement.ondragstart = function (event) {
+        event.preventDefault()
+        return false
+    } 
+
+    const dragControls = new DragControls([...objects], camera, renderer.domElement)
+
+    dragControls.addEventListener("hoveron", function () {
+        console.log('hover on')
+        console.log(orbitControls)
+        orbitControls.enabled = false
+    })
+
+    dragControls.addEventListener("hoveroff", function () {
+        console.log('hover off')
+        console.log(orbitControls)
+        orbitControls.enabled = true
+    })
+
+    //dragControls.addEventListener('dragstart', function (event) {
+    //    event.object.material.opacity = 0.33
+    //})
+
+    //dragControls.addEventListener('dragend', function (event) {
+    //    event.object.material.opacity = 1
+    //})
+
+    //let transformControls = new TransformControls(camera, renderer.domElement)
+    //transformControls.attach(...objects)
+    //transformControls.setMode("rotate")
+    //scene.add(transformControls)
+
+    //transformControls.addEventListener('dragging-changed', function (event) {
+    //    orbitControls.enabled = !event.value
+    //    dragControls.enabled= !event.value
+    //})
+
+    //window.addEventListener('keydown', function (event) {
+    //    switch (event.key)
+    //    {
+    //        case "g":
+    //            transformControls.setMode("translate")
+    //            break
+    //        case "r":
+    //            transformControls.setMode("rotate")
+    //            break
+    //        case "s":
+    //            transformControls.setMode("scale")
+    //            break
+    //    }
+    //})
+
+    
+}
+
+function onKeyDown()
+{
+    enableSelection = (event.keyCode === 16 ) ? true : false
+
+}
+
+function onKeyUp()
+{
+    enableSelection = false
+
+}
+
+function onClick(event)
+{
+    console.log('object selected for drag!')
+    event.preventDefault()
+
+    if (enableSelection === true)
+    {
+        const draggableObjects = dragControls.getObjects()
+        draggableObjects.length = 0
+
+        mouse.x = (event.clientX / window.innerWidth) * 2 - 1
+        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1
+
+        raycaster.setFromCamera(mouse, camera)
+        const intersections = raycaster.intersectObjects(objects,true)
+
+
+        if (intersections.length > 0)
+        {
+            const object = intersections[0].object
+
+
+            if (group.children.includes(object) === true) {
+                object.material.emissive.set(0x000000)
+                scene.attach(object)
+            }
+            else
+            {
+                object.material.emissive.set(0xaaaaaa)
+                group.attach(object)
+            }
+
+            dragControls.transformGroup = true
+            draggableObjects.push(group)
+        }
+
+        if (group.children.length === 0)
+        {
+            dragControls.transformGroup = false
+            draggableObjects.push(...objects)
+        }
+
+    }
+}
+
 
 
 function initPlayer(game) {
@@ -155,7 +375,8 @@ function initPlayer(game) {
         // colour: '#' + (Math.random() * 0xFFFFFF << 0).toString(16).padStart(6, '0'),
         model: null,
         name: name,
-        position: controls.object.position,
+        //position: controls.object.position,
+        position: orbitControls.object.position,
         rotation: {
             x: null,
             y: null
@@ -175,8 +396,8 @@ function initPlayer(game) {
 
     const objLoader = new THREE.OBJLoader();
 
-    objLoader.setPath('obj/walt/')
-    objLoader.load('WaltHead.obj', function(object) {
+    objLoader.setPath('obj/vrhead/')
+    objLoader.load('vrhead.obj', function(object) {
 
         game.avatar = object.children[0];
         game.avatar.scale.multiplyScalar(1);
@@ -274,12 +495,18 @@ function updateLocal() {
 
 function updateGlobal() {
 
-    player.rotation.x = controls.getAzimuthalAngle()
-    player.rotation.y = controls.getPolarAngle()
+    //player.rotation.x = controls.getAzimuthalAngle()
+    //player.rotation.y = controls.getPolarAngle()
+
+    player.rotation.x = orbitControls.getAzimuthalAngle()
+    player.rotation.y = orbitControls.getPolarAngle()
+
     player.target = camera.getWorldDirection(new THREE.Vector3(0, 0, 0));
 
     // camera.getWorldQuaternion( quaternion );
-    player.position = controls.object.position
+    //player.position = controls.object.position
+
+    player.position = orbitControls.object.position
     socket.emit('update', player)
 
     // globalPlayer.geometry.postion.set(100,100,100)
@@ -291,17 +518,37 @@ function updateGlobal() {
 function initTHREEVR(){
 
     setEnvironmentMap()
-    setRenderer()
+    setRendererVR()
     setScene()
     setCamera()
-    setControls()
+    setOrbitControls()
     setLights()
     initPlane() // make an invisible plane for shadows 
     setEvents()
     addPickingBoxes()
     setRaycaster()
 
-    control = initTransformControl(scene)
+
+
+    //document.body.onkeyup = function (e)
+    //{
+    //    if (event.keyCode === 19)
+    //        console.log(event.keyCode)
+    //    dragControl = !dragCtrl(scene)
+    //    //controls.enabled = !event.value;
+    //}
+
+
+    //dragControl = dragCtrl(scene)
+    
+
+    /*control=dragCtrl(scene)*/
+
+    control = initSnapTransformControl(scene)
+
+
+    //multipleControls()
+
 
 }
 
@@ -320,6 +567,9 @@ function initTHREE() {
     setRaycaster()
 
     control = initTransformControl(scene)
+
+    dragControl= dragCtrl(scene)
+
 }
 
 
@@ -424,6 +674,8 @@ function setEvents() {
 }
 
 
+
+
 function setRenderer() {
 
     container = document.createElement('div');
@@ -442,28 +694,76 @@ function setRenderer() {
 
 }
 
+function setRendererVR()
+{
+    container = document.createElement('div');
+    document.body.appendChild(container);
+    //renderer
+    renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    // renderer.shadowMap.enabled = true;
+    // renderer.shadowMap.type = THREE.VSMShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap; // default THREE.PCFShadowMap  THREE.VSMShadowMap PCFSoftShadowMap
+    renderer.outputEncoding = THREE.sRGBEncoding;
+
+    renderer.xr.enabled = true
+    renderer.xr.setFramebufferScaleFactor(2.0)
+
+
+    container.appendChild(renderer.domElement);
+    container.appendChild(VRButton.createButton(renderer));
+}
+
 
 
 function setControls() {
 
-
-    // controls = new OrbitControls(camera, renderer.domElement);
-
-    // orbit.addEventListener('change', render);
+   
 
 
     controls = new THREE.OrbitControls(camera, renderer.domElement);
     controls.update();
-    controls.enableZoom = true;
-    controls.enablePan = true;
+    // controls.enableZoom = true;
+    // controls.enablePan = true;
     controls.minPolarAngle = Math.PI / 4;
     controls.maxPolarAngle = Math.PI / 1.5;
     controls.addEventListener('change', updateGlobal)
 
     return controls 
-
-
 }
+
+// <<<<<<< HEAD
+// function setControlsVR() {
+
+
+//     // controls = new OrbitControls(camera, renderer.domElement);
+
+//     // orbit.addEventListener('change', render);
+
+//     const session = renderer.xr.getSession()
+
+//     if (session) {
+//         controls = new THREE.OrbitControls(renderer.xr.getCamera(camera), container);
+//     }
+
+// =======
+// >>>>>>> c360fd022ba828d5e5c9a9235e539d71bb8b5e7e
+
+function setOrbitControls()
+{
+    orbitControls = new THREE.OrbitControls(camera, renderer.domElement);
+    //orbitControls.update();
+    // controls.enableZoom = true;
+    // controls.enablePan = true;
+    //orbitControls.minPolarAngle = Math.PI / 4;
+    //orbitControls.maxPolarAngle = Math.PI / 1.5;
+    //orbitControls.addEventListener('change', updateGlobal)
+
+    return orbitControls
+}
+
 
 function addModel() {
 
@@ -535,6 +835,8 @@ function setEnvironmentMap() {
     }
 
 }
+
+
 
 function addPickingBoxes() {
 
@@ -608,12 +910,31 @@ function animate() {
 
 }
 
+function animateVR() {
+
+    // const dt = this.clock.getDelta();  
+    let dt = null
+    game.updateRemotePlayers(dt)
+
+    comments.forEach(msg => msg.lookAt(camera.position))
+
+    //selectionHover()
+
+    // raycast()
+    requestAnimationFrame(animate);
+    renderer.setAnimationLoop(render)
+    //render();
+
+}
+
 function render() {
     var delta = clock.getDelta();
     // controls.update(delta);
     renderer.render(scene, camera);
 
 }
+
+
 
 function initPlane() {
 
@@ -876,7 +1197,6 @@ function selectionHover() {
 
                 INTERSECTED.material.emissive.setHex(INTERSECTED.currentHex);
                 control.detach(INTERSECTED)
-
             }
 
             // new mesh
@@ -898,6 +1218,8 @@ function selectionHover() {
     }
 
 }
+
+
 
 
 
@@ -951,18 +1273,13 @@ function attachTransform() {
 }
 
 
-
-
-
 function initTransformControl(scene) {
-
 
     console.log('init TransformControls')
 
     let newControl = new TransformControls(camera, renderer.domElement);
 
     newControl.addEventListener('objectChange', function(event) {
-
 
         console.log('objectChange')
 
@@ -976,26 +1293,86 @@ function initTransformControl(scene) {
                 x: o.position.x,
                 y: o.position.y,
                 z: o.position.z
-
             }
 
             console.log(data)
 
             socket.emit('updateAsset', data)
-
         }
-
-
 
     });
 
     newControl.addEventListener('dragging-changed', function(event) {
 
-        controls.enabled = !event.value;
+        orbitControls.enabled = !event.value;
 
         console.log('dragging-changed!', INTERSECTED)
 
     });
+
+    scene.add(newControl);
+
+
+
+    return newControl
+}
+
+function initSnapTransformControl(scene)
+{
+
+    console.log('init TransformControls')
+
+    let newControl = new TransformControls(camera, renderer.domElement);
+
+    newControl.addEventListener('objectChange', function (event) {
+
+        console.log('objectChange')
+
+        if (control.object) {
+
+            let o = control.object
+
+            let data = {
+
+                id: o.sid,
+                x: o.position.x,
+                y: o.position.y,
+                z: o.position.z
+            }
+
+            console.log(data)
+
+            socket.emit('updateAsset', data)
+        }
+
+    });
+
+    newControl.addEventListener('dragging-changed', function (event) {
+
+        orbitControls.enabled = !event.value;
+
+        console.log('dragging-changed!', INTERSECTED)
+
+    });
+
+
+    //press 'shift' to enable snap
+    window.addEventListener('keydown', (event) =>
+    {
+        if (event.keyCode === 16)
+        {
+            newControl.setTranslationSnap(5)
+            newControl.setScaleSnap(0.05)
+        }
+    })
+
+    window.addEventListener('keyup', (event) => {
+        if (event.keyCode === 16) {
+            newControl.setTranslationSnap(null)
+            newControl.setScaleSnap(null)
+        }
+    })
+
 
     scene.add(newControl);
 
