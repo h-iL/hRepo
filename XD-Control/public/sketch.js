@@ -7,6 +7,7 @@ import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.119.1/exampl
 import { SelectionBox } from './js/SelectionBox.js'
 import { SelectionHelper } from './js/SelectionHelper.js'
 import { MeshLambertMaterial } from './js/three.module.js'
+import { DragControls } from './js/DragControls.js'
 
 
 var allSelected=[]
@@ -34,10 +35,7 @@ scene.add(axesHelper)
 const backgroundTexture = new THREE.CubeTextureLoader().load(['./textures/cube/clouds/3.png', './textures/cube/clouds/1.png', './textures/cube/clouds/top.png', './textures/cube/clouds/white.png', './textures/cube/clouds/2.png', './textures/cube/clouds/4.png'])
 scene.background = backgroundTexture
 
-
 ////////////////////////////////////////////////////////////////////////////////
-
-
 
 const light = new THREE.SpotLight(0xffffff, 1.5)
 light.position.set(0, 500, 2000)
@@ -46,18 +44,14 @@ light.angle=Math.PI/9
 light.castShadow = true
 scene.add(light)
 
-
-
 ////////////////////////////////////////////////////////////////////////////////
 
-
-
+let objects=[]
 const tempGroup = new THREE.Group()
 scene.add(tempGroup)
 
 tempGroup.userData.selected = []
 tempGroup.userData.prevParent = []
-
 
 const geometry = new THREE.BoxGeometry(2, 2, 2)
 
@@ -70,30 +64,56 @@ for (let i = 0; i < 20; i++)
     object.position.z = Math.random() * 50 - 25
 
     scene.add(object)
-
+    objects.push(object)
 }
 
-
 ////////////////////////////////////////////////////////////////////////////////
+
+let selection = new THREE.Object3D()
+scene.add(selection)
+
 
 const orbitControls = new OrbitControls(camera, renderer.domElement)
 
 
 const transformControls = new TransformControls(camera, renderer.domElement)
 
-transformControls.setMode('rotate')
+const dragControls = new DragControls([...objects], camera, renderer.domElement)
+
+
+dragControls.deactivate()
+
+
+dragControls.addEventListener('dragstart', function (event)
+{
+    orbitControls.enabled = false    
+})
+
+dragControls.addEventListener('dragend', function (event)
+{
+    orbitControls.enabled = true
+})
+
+transformControls.setMode('translate')
 scene.add(transformControls)
+//transformControls.attach(selected)
+
+orbitControls.mouseButtons =
+{
+    RIGHT: THREE.MOUSE.ROTATE,
+    LEFT: null,//THREE.MOUSE.DOLLY,
+    MIDDLE: THREE.MOUSE.PAN
+}
 
 transformControls.addEventListener('dragging-changed', function (event) {
 
     orbitControls.enabled = !event.value
-
 })
 
 
 window.addEventListener('keydown', function (event) {
 
-    switch (event.key) {
+    switch (event.key || event.keyCode) {
 
         case "g":
             transformControls.setMode('translate')
@@ -107,33 +127,49 @@ window.addEventListener('keydown', function (event) {
             transformControls.setMode('scale')
             break
 
-        case "z":
-            orbitControls.enabled = false
+        //case "z":
+        //    orbitControls.enabled = false
+        //    break
+
+        //case "x":
+        //    orbitControls.enabled = true
+        //    break
+
+        case "d":
+             console.log('drag enabled')
+             dragControls.activate()                       
             break
 
-        case "x":
-            orbitControls.enabled = true
+        case "f":
+            console.log('drag disabled')
+            dragControls.deactivate()
             break
-
 
     }
 })
-
 
 document.addEventListener('dblclick', function () {
+    
+    selection = null
+    transformControls.detach(selection)
+    console.log('dblclick')
 
-    if (orbitControls.enabled) {
-        orbitControls.enabled = false
-    }
-
-    else orbitControls.enabled = true
 })
+
+
+//document.addEventListener('dblclick', function () {
+
+//    if (orbitControls.enabled) {
+//        orbitControls.enabled = false
+//    }
+
+//    else orbitControls.enabled = true
+//})
 
 ////////////////////////////////////////////////////////////////////////////////
 
 const selectionBox = new SelectionBox(camera, scene)
 const helper = new SelectionHelper(selectionBox, renderer, 'selectBox')
-
 
 
 
@@ -143,10 +179,10 @@ document.addEventListener('pointerdown', function (event) {
     console.log('pointer down')
 
     for (const item of selectionBox.collection) {
-              
+        
         try {
             if (item.material.type === 'MeshLambertMaterial')
-                item.material.emissive.set(0x000000);
+                item.material.emissive.set(0x000000);        
 
         }
         catch (err) {
@@ -169,8 +205,6 @@ document.addEventListener('pointermove', function (event) {
     if (helper.isDown) {
         console.log('pointer move')
 
-       
-
         for (let i = 0; i < selectionBox.collection.length; i++) {
             
             try {
@@ -181,7 +215,6 @@ document.addEventListener('pointermove', function (event) {
             catch (err) {
                 console.log(selectionBox.collection[i].material)
             }
-
         }
 
         selectionBox.endPoint.set(
@@ -189,13 +222,11 @@ document.addEventListener('pointermove', function (event) {
             -(event.clientY / window.innerHeight) * 2 + 1,
             0.5)
 
-        allSelected = selectionBox.select()
-    
-
+        allSelected = selectionBox.select()        
 
 
         for (let i = 0; i < allSelected.length; i++) {
-
+            
             try {
                 if (allSelected[i].material.type === 'MeshLambertMaterial')
                     allSelected[i].material.emissive.set(0xffffff);
@@ -219,14 +250,8 @@ document.addEventListener('pointerup', function (event) {
         -(event.clientY / window.innerHeight) * 2 + 1,
         0.5)
 
-    const allSelected = selectionBox.select()
-    //console.log(allSelected)
-
-    //allSelected.forEach(o => tempGroup.add(o))
-    //transformControls.attach(tempGroup)
-
-    //onGroupingStart(allSelected)
-    //onGroupingEnd()
+    allSelected = selectionBox.select()
+    
 
     for (let i = 0; i < allSelected.length; i++) {
 
@@ -239,8 +264,30 @@ document.addEventListener('pointerup', function (event) {
             console.log(allSelected[i].material)
         }
     }
+
+
+
+
+    allSelected.forEach(o =>
+    {
+        if (o.type === 'Mesh')
+        {            
+            selection.add(o)
+            console.log(selection)            
+        }
+
+    })
+
+
     
 })
+
+if (selection !== null)
+{
+    transformControls.attach(selection)
+    scene.add(transformControls)
+}
+
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -255,7 +302,7 @@ function onGroupingStart(event)
     
     if (event.detail.intersection.object !== undefined)
     {        
-        var intersectedObject = event.detail.intersection.object
+    var intersectedObject = event.detail.intersection.object
 
         if (tempGroup.userData.selected.includes(intersectedObject))
         {
