@@ -299,6 +299,13 @@ function onGroupingStart(event)
 {
     tempGroup.matrixWorldNeedsUpdate = true
 
+    if (!event.detail.intersection) return
+
+        // SP: There is no "intersection" property of event.detail - where is this being set in the code?
+
+    console.log(event)
+
+
     
     if (event.detail.intersection.object !== undefined)
     {        

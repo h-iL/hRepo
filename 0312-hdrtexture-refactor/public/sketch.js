@@ -73,7 +73,7 @@ function init() {
     reflectionCube = setCubeMap()
 
     scene = new THREE.Scene();
-    scene.background = reflectionCube
+    // scene.background = reflectionCube
 
     scene.fog = new THREE.Fog(scene.background, 3500, 15000);
 
