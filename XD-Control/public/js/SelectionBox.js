@@ -1,7 +1,4 @@
-import {
-	Frustum,
-	Vector3
-} from '../../../build/three.module.js';
+import {Frustum, Vector3} from '../../../build/three.module.js';
 
 /**
  * This is a class to check whether objects are in a selection area in 3D space
@@ -40,14 +37,17 @@ var SelectionBox = ( function () {
 
 	}
 
-	SelectionBox.prototype.select = function ( startPoint, endPoint ) {
+	SelectionBox.prototype.select = function ( startPoint, endPoint, pickingObjects ) {
+
+		// console.log(pickingObjects)
 
 		this.startPoint = startPoint || this.startPoint;
+		pickingObjects = pickingObjects || this.scene
 		this.endPoint = endPoint || this.endPoint;
 		this.collection = [];
 
 		this.updateFrustum( this.startPoint, this.endPoint );
-		this.searchChildInFrustum( frustum, this.scene );
+		this.searchChildInFrustum( frustum, pickingObjects );
 
 		return this.collection;
 
@@ -57,6 +57,8 @@ var SelectionBox = ( function () {
 
 		startPoint = startPoint || this.startPoint;
 		endPoint = endPoint || this.endPoint;
+
+
 
 		// Avoid invalid frustum
 

@@ -1,23 +1,32 @@
-
 console.log('yeah it is running')
 
-import { TransformControls } from './js/TransformControls.js'
-import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.119.1/examples/jsm/controls/OrbitControls.min.js"
+import {
+    TransformControls
+} from './js/TransformControls.js'
+import {
+    OrbitControls
+} from "https://cdn.jsdelivr.net/npm/three@0.119.1/examples/jsm/controls/OrbitControls.min.js"
 
-import { SelectionBox } from './js/SelectionBox.js'
-import { SelectionHelper } from './js/SelectionHelper.js'
-import { MeshLambertMaterial } from './js/three.module.js'
-import { DragControls } from './js/DragControls.js'
+import {
+    SelectionBox
+} from './js/SelectionBox.js'
+import {
+    SelectionHelper
+} from './js/SelectionHelper.js'
+import {
+    MeshLambertMaterial
+} from './js/three.module.js'
+import {
+    DragControls
+} from './js/DragControls.js'
 
 
-var allSelected=[]
+var allSelected = []
 
 ////////////////////////////////////////////////////////////////////////////////
 
-const scene=new THREE.Scene()
-
+const scene = new THREE.Scene()
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000)
-
 const renderer = new THREE.WebGLRenderer()
 
 renderer.setSize(window.innerWidth, window.innerHeight)
@@ -39,14 +48,15 @@ scene.background = backgroundTexture
 
 const light = new THREE.SpotLight(0xffffff, 1.5)
 light.position.set(0, 500, 2000)
-light.angle=Math.PI/9
+light.angle = Math.PI / 9
 
 light.castShadow = true
 scene.add(light)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-let objects=[]
+let pickingObject = new THREE.Object3D()
+let objects = []
 const tempGroup = new THREE.Group()
 scene.add(tempGroup)
 
@@ -55,17 +65,24 @@ tempGroup.userData.prevParent = []
 
 const geometry = new THREE.BoxGeometry(2, 2, 2)
 
-for (let i = 0; i < 20; i++)
-{
-    const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({ color: Math.random() * 0xffffff }))
+for (var x = -20; x < 20; x += 4) {
+    for (var y = -20; y < 20; y += 4) {
+        for (var z = -20; z < 20; z += 4) {
 
-    object.position.x = Math.random() * 50 - 25
-    object.position.y = Math.random() * 50 - 25
-    object.position.z = Math.random() * 50 - 25
+            const object = new THREE.Mesh(geometry, new THREE.MeshLambertMaterial({
+                color: Math.random() * 0xffffff
+            }))
+            object.position.set(x, y, z)
+            scene.add(object)
+            objects.push(object)
 
-    scene.add(object)
-    objects.push(object)
+        }
+    }
 }
+
+pickingObject.children = objects
+
+
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -74,16 +91,11 @@ scene.add(selection)
 
 
 const orbitControls = new OrbitControls(camera, renderer.domElement)
-
-
 const transformControls = new TransformControls(camera, renderer.domElement)
 
+/*
 const dragControls = new DragControls([...objects], camera, renderer.domElement)
-
-
 dragControls.deactivate()
-
-
 dragControls.addEventListener('dragstart', function (event)
 {
     orbitControls.enabled = false    
@@ -93,25 +105,29 @@ dragControls.addEventListener('dragend', function (event)
 {
     orbitControls.enabled = true
 })
+*/
 
 transformControls.setMode('translate')
 scene.add(transformControls)
 //transformControls.attach(selected)
 
-orbitControls.mouseButtons =
-{
+orbitControls.mouseButtons = {
+
     RIGHT: THREE.MOUSE.ROTATE,
-    LEFT: null,//THREE.MOUSE.DOLLY,
+    LEFT: null, //THREE.MOUSE.DOLLY,
     MIDDLE: THREE.MOUSE.PAN
+
 }
 
-transformControls.addEventListener('dragging-changed', function (event) {
+
+transformControls.addEventListener('dragging-changed', function(event) {
 
     orbitControls.enabled = !event.value
+
 })
 
 
-window.addEventListener('keydown', function (event) {
+window.addEventListener('keydown', function(event) {
 
     switch (event.key || event.keyCode) {
 
@@ -127,93 +143,181 @@ window.addEventListener('keydown', function (event) {
             transformControls.setMode('scale')
             break
 
-        //case "z":
-        //    orbitControls.enabled = false
-        //    break
+            /*
+            case "d":
+                console.log('drag enabled')
+                dragControls.activate()
+                break
 
-        //case "x":
-        //    orbitControls.enabled = true
-        //    break
+            case "f":
+                console.log('drag disabled')
+                dragControls.deactivate()
+                break
 
-        case "d":
-             console.log('drag enabled')
-             dragControls.activate()                       
-            break
-
-        case "f":
-            console.log('drag disabled')
-            dragControls.deactivate()
-            break
-
+            */
     }
-})
-
-document.addEventListener('dblclick', function () {
-    
-    selection = null
-    transformControls.detach(selection)
-    console.log('dblclick')
 
 })
 
+document.addEventListener('dblclick', function() {
 
-//document.addEventListener('dblclick', function () {
+    console.log('double click')
 
-//    if (orbitControls.enabled) {
-//        orbitControls.enabled = false
-//    }
+    resetSelectionBox(selectionBox)
 
-//    else orbitControls.enabled = true
-//})
+    // selection = null
+    // transformControls.detach(selection)
+    // console.log('dblclick')
 
-////////////////////////////////////////////////////////////////////////////////
+})
+
 
 const selectionBox = new SelectionBox(camera, scene)
 const helper = new SelectionHelper(selectionBox, renderer, 'selectBox')
 
 
 
-document.addEventListener('pointerdown', function (event) {
+document.addEventListener('pointerdown', onMouseDown)
 
 
-    console.log('pointer down')
+function onMouseDown(event) {
+    // console.log('single click')
 
-    for (const item of selectionBox.collection) {
-        
-        try {
-            if (item.material.type === 'MeshLambertMaterial')
-                item.material.emissive.set(0x000000);        
+    switch (event.button) {
+        case 0: // left 
+            console.log('left click')
 
+            let x = (event.clientX / window.innerWidth) * 2 - 1
+            let y = -(event.clientY / window.innerHeight) * 2 + 1
+            selectionBox.startPoint.set(x, y, 0.5)
+
+
+            break;
+        case 1: // middle
+            console.log('middle')
+            break;
+        case 2: // right
+            console.log('right click')
+
+            break;
+    }
+
+}
+
+
+function onMouseUp(event) {
+    // console.log('single click')
+
+    switch (event.button) {
+        case 0: // left 
+            console.log('pointer up')
+
+            // console.log('pointer up')
+
+            let x = (event.clientX / window.innerWidth) * 2 - 1
+            let y = -(event.clientY / window.innerHeight) * 2 + 1
+
+
+            selectionBox.endPoint.set(x, y, 0.5)
+
+            let newSelection = selectionBox.select(null, null, pickingObject)
+            allSelected.push(...newSelection)
+
+
+
+            console.log(allSelected.length)
+
+
+            for (let i = 0; i < allSelected.length; i++) {
+
+                try {
+                    if (allSelected[i].material.type === 'MeshLambertMaterial')
+                        allSelected[i].material.emissive.set(0x00ff00);
+
+                } catch (err) {
+                    // console.log(allSelected[i].material)
+                }
+            }
+
+
+
+            // allSelected.forEach(o => {
+            //     if (o.type === 'Mesh') {
+            //         selection.add(o)
+            //             // console.log(selection)
+            //     }
+
+            // })
+
+            if (allSelected.length > 0) {
+
+                let group = new THREE.Object3D()
+                scene.add(group)
+                allSelected.forEach(o => group.add(o))
+                transformControls.attach(group)
+
+
+            }
+
+            // if (selection !== null) {
+            //     transformControls.attach(selection)
+            //     scene.add(transformControls)
+            // }
+
+            break;
+        case 1: // middle
+            console.log('middle')
+            break;
+        case 2: // right
+            console.log('right click')
+
+            break;
+    }
+
+}
+
+
+function resetSelectionBox() {
+
+    console.log('reset selection box')
+    // console.log(selectionBox.collection)
+    console.log(allSelected.length)
+
+    // for (const ch of selectionBox.collection) {
+
+    for (var i = 0; i < allSelected.length; i++) {
+
+        let item = allSelected[i]
+
+
+
+        if (item.material.type === 'MeshLambertMaterial') {
+            item.material.emissive.set(0x00000);
         }
-        catch (err) {
-            console.log(item.material)
-        }     
 
     }
 
-    selectionBox.startPoint.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1,
-        0.5)
-
-})
+    allSelected = []
 
 
 
-document.addEventListener('pointermove', function (event) {
+}
+
+document.addEventListener('pointermove', function(event) {
+
+    /*
 
     if (helper.isDown) {
-        console.log('pointer move')
+        // console.log('pointer move')
 
         for (let i = 0; i < selectionBox.collection.length; i++) {
-            
+
             try {
                 if (selectionBox.collection[i].material.type === 'MeshLambertMaterial')
                     selectionBox.collection[i].material.emissive.set(0x000000);
 
-            }
-            catch (err) {
-                console.log(selectionBox.collection[i].material)
+            } catch (err) {
+                // console.log(selectionBox.collection[i].material)
             }
         }
 
@@ -222,72 +326,27 @@ document.addEventListener('pointermove', function (event) {
             -(event.clientY / window.innerHeight) * 2 + 1,
             0.5)
 
-        allSelected = selectionBox.select()        
+        allSelected = selectionBox.select()
 
 
         for (let i = 0; i < allSelected.length; i++) {
-            
+
             try {
                 if (allSelected[i].material.type === 'MeshLambertMaterial')
                     allSelected[i].material.emissive.set(0xffffff);
 
-            }
-            catch (err) {
-                console.log(allSelected[i].material)
+            } catch (err) {
+                // console.log(allSelected[i].material)
             }
         }
     }
 
+    */
+
 })
 
-document.addEventListener('pointerup', function (event) {
 
-    console.log('pointer up')
-
-
-    selectionBox.endPoint.set(
-        (event.clientX / window.innerWidth) * 2 - 1,
-        -(event.clientY / window.innerHeight) * 2 + 1,
-        0.5)
-
-    allSelected = selectionBox.select()
-    
-
-    for (let i = 0; i < allSelected.length; i++) {
-
-        try {
-            if (allSelected[i].material.type === 'MeshLambertMaterial')
-                allSelected[i].material.emissive.set(0xffffff);
-
-        }
-        catch (err) {
-            console.log(allSelected[i].material)
-        }
-    }
-
-
-
-
-    allSelected.forEach(o =>
-    {
-        if (o.type === 'Mesh')
-        {            
-            selection.add(o)
-            console.log(selection)            
-        }
-
-    })
-
-
-    
-})
-
-if (selection !== null)
-{
-    transformControls.attach(selection)
-    scene.add(transformControls)
-}
-
+document.addEventListener('pointerup', onMouseUp)
 
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -295,24 +354,16 @@ if (selection !== null)
 var tempMatrix = new THREE.Matrix4()
 
 
-function onGroupingStart(event)
-{
+function onGroupingStart(event) {
+
     tempGroup.matrixWorldNeedsUpdate = true
 
     if (!event.detail.intersection) return
 
-        // SP: There is no "intersection" property of event.detail - where is this being set in the code?
+    if (event.detail.intersection.object !== undefined) {
+        var intersectedObject = event.detail.intersection.object
 
-    console.log(event)
-
-
-    
-    if (event.detail.intersection.object !== undefined)
-    {        
-    var intersectedObject = event.detail.intersection.object
-
-        if (tempGroup.userData.selected.includes(intersectedObject))
-        {
+        if (tempGroup.userData.selected.includes(intersectedObject)) {
             return
         }
 
@@ -330,9 +381,7 @@ function onGroupingStart(event)
 
         if (tempGroup.userData.selected.length > 1) {
             transformControls.attach(tempGroup)
-        }
-        else
-        {
+        } else {
             transformControls.attach(intersectedObject)
         }
 
@@ -345,12 +394,13 @@ function onGroupingStart(event)
 
 function onGroupingEnd() {
 
-    if (tempGroup.userData.selected !== [])
-    {
+    console.log('grouping end')
+
+    if (tempGroup.userData.selected !== []) {
         var intersectedObject
 
-        for (let i = 0; i < tempGroup.userData.selected.length; i++)
-        {
+        for (let i = 0; i < tempGroup.userData.selected.length; i++) {
+
             intersectedObject = tempGroup.userData.selected[i]
             intersectedObject.matrixWorldNeedsUpdate = true
 
@@ -362,7 +412,7 @@ function onGroupingEnd() {
             intersectedObject_matrix_old.decompose(intersectedObject.position, intersectedObject.quaternion, intersectedObject.scale)
 
             tempGroup.userData.prevParent[i].add(intersectedObject)
-            intersectedObject.material.emissive.b=0
+            intersectedObject.material.emissive.b = 0
 
         }
 
@@ -370,7 +420,7 @@ function onGroupingEnd() {
         tempGroup.userData.prevParent = []
 
     }
-    transformControls.detach
+    transformControls.detach()
 
 
 }
@@ -383,24 +433,21 @@ camera.position.z = 2
 
 window.addEventListener('resize', onWindowResize, false)
 
-function onWindowResize()
-{
+function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
     render()
 }
 
-function render()
-{
+function render() {
     renderer.render(scene, camera)
 }
 
-var animate = function () {
+var animate = function() {
     requestAnimationFrame(animate)
     render()
 }
 
 animate()
 window.focus()
-
