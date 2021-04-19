@@ -190,7 +190,7 @@ document.addEventListener('pointermove', function (event) {
             0.5)
 
         allSelected = selectionBox.select()
-        
+    
 
 
 
@@ -225,8 +225,8 @@ document.addEventListener('pointerup', function (event) {
     //allSelected.forEach(o => tempGroup.add(o))
     //transformControls.attach(tempGroup)
 
-    onGroupingStart(event)
-    onGroupingEnd()
+    //onGroupingStart(allSelected)
+    //onGroupingEnd()
 
     for (let i = 0; i < allSelected.length; i++) {
 
@@ -239,7 +239,6 @@ document.addEventListener('pointerup', function (event) {
             console.log(allSelected[i].material)
         }
     }
-
     
 })
 
