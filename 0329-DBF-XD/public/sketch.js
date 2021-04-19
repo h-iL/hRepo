@@ -1355,6 +1355,8 @@ function initSnapTransformControl(scene)
 
     });
 
+
+    //press 'shift' to enable snap
     window.addEventListener('keydown', (event) =>
     {
         if (event.keyCode === 16)

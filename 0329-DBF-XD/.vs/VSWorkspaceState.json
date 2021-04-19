@@ -3,10 +3,7 @@
     "",
     "\\public",
     "\\public\\javascripts",
-    "\\public\\javascripts\\game",
-    "\\public\\javascripts\\player",
-    "\\public\\jsm",
-    "\\public\\jsm\\webxr"
+    "\\public\\javascripts\\game"
   ],
   "SelectedNode": "\\public\\sketch.js",
   "PreviewInSolutionExplorer": false
