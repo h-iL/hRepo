@@ -32,7 +32,10 @@ var SelectionBox = ( function () {
 		this.scene = scene;
 		this.startPoint = new Vector3();
 		this.endPoint = new Vector3();
+		
 		this.collection = [];
+		this.notSelected = []
+
 		this.deep = deep || Number.MAX_VALUE;
 
 	}
@@ -45,11 +48,13 @@ var SelectionBox = ( function () {
 		pickingObjects = pickingObjects || this.scene
 		this.endPoint = endPoint || this.endPoint;
 		this.collection = [];
+		this.notSelected = []
 
 		this.updateFrustum( this.startPoint, this.endPoint );
 		this.searchChildInFrustum( frustum, pickingObjects );
 
-		return this.collection;
+		return {selected: this.collection, notSelected: this.notSelected}
+
 
 	};
 
@@ -174,12 +179,15 @@ var SelectionBox = ( function () {
 				if ( object.geometry.boundingSphere === null ) object.geometry.computeBoundingSphere();
 
 				center.copy( object.geometry.boundingSphere.center );
-
 				center.applyMatrix4( object.matrixWorld );
 
 				if ( frustum.containsPoint( center ) ) {
 
 					this.collection.push( object );
+
+				} else { 
+
+					this.notSelected.push( object )
 
 				}
 
