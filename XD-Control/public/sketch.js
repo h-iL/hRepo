@@ -114,12 +114,6 @@ orbitControls.mouseButtons = {
 
 transformControls.addEventListener('dragging-changed', function(event) {
 
-    console.log('dragging')
-    checkTO()
-
-
-
-
     orbitControls.enabled = !event.value
 
 })
@@ -160,7 +154,6 @@ window.addEventListener('keydown', function(event) {
 document.addEventListener('dblclick', function() {
 
     console.log('double click')
-
     resetSelectionBox(selectionBox)
 
 })
@@ -411,6 +404,8 @@ function resetSelectionBox() {
  
     tempGroup.position.set(0,0,0)
     transformControls.detach()
+
+
 
 
 
