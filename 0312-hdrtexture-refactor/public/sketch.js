@@ -1,7 +1,11 @@
 console.log('sketch.js')
 
-import {textureBlock,updateTexture} from "./javascripts/dbf-proc-tex.js"
+import {
+    textureBlock,
+    updateTexture
+} from "./javascripts/dbf-proc-tex.js"
 import Sun from './javascripts/dbf-sun.js'
+
 // import Lenslare from './javascripts/lensflare/LensFlare.js'
 
 var container;
@@ -9,7 +13,7 @@ var camera, scene, renderer;
 var pointLight;
 var reflectionCube
 var refractionCube
-var buildingElements = null 
+var buildingElements = null
 var clock = new THREE.Clock();
 
 let lighting
@@ -20,12 +24,70 @@ animate()
 
 
 
-function addModel(){
+function addModel() {
 
-    buildingElements = textureBlock({solution:sampleSoln,reflection:reflectionCube,refraction:refractionCube})
-    buildingElements.slabs.forEach(mesh=>scene.add(mesh))
-    buildingElements.envelope.forEach(mesh=>scene.add(mesh))
-    
+    buildingElements = textureBlock({
+            solution: sampleSoln,
+            reflection: reflectionCube,
+            refraction: refractionCube
+        })
+        // buildingElements.slabs.forEach(mesh=>scene.add(mesh))
+        // buildingElements.envelope.forEach(mesh=>scene.add(mesh))
+
+    let multi_material = buildingElements.envelope.map(mesh => mesh.material)
+    console.log(multi_material.length)
+
+
+    const length = 12,
+        width = 8;
+
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.lineTo(0, width);
+    shape.lineTo(length, width);
+    shape.lineTo(length, 0);
+    shape.lineTo(0, 0);
+
+    const extrudeSettings = {
+        steps: 1,
+        depth: 16,
+        bevelEnabled: false,
+
+    };
+
+    const geometry = new THREE.ExtrudeGeometry(shape, extrudeSettings);
+    const material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00
+    });
+
+
+    var extr = new THREE.Mesh(geometry, multi_material)
+    extr.geometry.faces[0].materialIndex = 0;
+    extr.geometry.faces[1].materialIndex = 1;
+    extr.geometry.faces[4].materialIndex = 4;
+
+
+    // var mesh = THREE.SceneUtils.createMultiMaterialObject( geometry, multi_material)
+    scene.add(extr);
+
+    // mesh.geometry.faces.forEach(face=>console.log(face))
+
+    // console.log(geometry.faces.length)
+
+    extr.position.x = 50
+
+
+    const geo = new THREE.PlaneGeometry(50, 50, 32);
+    const plane = new THREE.Mesh(geo, multi_material[1]);
+    scene.add(plane);
+
+    var box = new THREE.Mesh(new THREE.BoxGeometry(50, 50, 50), multi_material)
+    box.geometry.faces[0].materialIndex = 0;
+    box.geometry.faces[1].materialIndex = 1;
+    scene.add(box)
+
+    box.position.x = -50
+
 }
 
 function setCubeMap() {
@@ -96,13 +158,13 @@ function init() {
 
     window.addEventListener('resize', onWindowResize, false);
 
-    document.body.onkeyup = function(e){
-    if(e.keyCode == 32){
-        //your code
-        console.log('hi')
-        updateTexture({meshes: buildingElements.envelope} )
+    document.body.onkeyup = function(e) {
+        // if(e.keyCode == 32){
+        //     //your code
+        //     console.log('hi')
+        //     updateTexture({meshes: buildingElements.envelope} )
+        // }
     }
-}
 
 }
 
@@ -118,7 +180,7 @@ function onWindowResize() {
 
     // renderer.setSize(window.innerWidth, window.innerHeight);
 
-        renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
 
@@ -160,9 +222,9 @@ function setLights(argument) {
     let sun = Sun(scene)
 
     scene.add(sun.getLight())
-   // let mesh = sun.getMesh()
-   // scene.add(mesh)
-    // scene.add(sun.getMesh())
+        // let mesh = sun.getMesh()
+        // scene.add(mesh)
+        // scene.add(sun.getMesh())
 
     var ambient = new THREE.AmbientLight(0xffffff, 0.8);
     scene.add(ambient);
